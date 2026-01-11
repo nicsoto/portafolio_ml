@@ -221,8 +221,6 @@ def main():
                 optimize_params=optimize_params,
                 n_trials=n_trials,
             )
-                tp_pct=tp_pct,
-            )
 
         if result is None:
             return
@@ -295,7 +293,7 @@ def execute_backtest(
     try:
         # 1. Cargar datos
         loader = DataLoader()
-        prices, _ = loader.load(ticker, timeframe=timeframe)
+        prices, metadata = loader.load(ticker, timeframe=timeframe)
 
         if prices.empty:
             st.error(f"❌ No se encontraron datos para {ticker}")

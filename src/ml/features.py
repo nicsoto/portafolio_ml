@@ -140,6 +140,9 @@ class FeatureEngineer:
         # 🔥 CRÍTICO: Shiftear TODO el DataFrame al final
         # Esto garantiza que feature[t] usa SOLO datos hasta t-1
         df = df.shift(1)
+        
+        # Limpiar infinitos que pueden generarse por división por cero
+        df = df.replace([np.inf, -np.inf], np.nan)
 
         return df
 
