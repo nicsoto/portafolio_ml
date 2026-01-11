@@ -21,10 +21,11 @@ from src.backtest import BacktestEngine, TradingCosts
 from src.evaluation import ReportGenerator
 from src.config import Settings, ExperimentRun
 from src.ml import FeatureEngineer, MLModel, MLStrategy
+from src.ui.styles import apply_styles
 
 # Page config
 st.set_page_config(
-    page_title="Trading Backtester",
+    page_title="Trading Backtester Pro",
     page_icon="📈",
     layout="wide",
 )
@@ -35,12 +36,20 @@ settings.ensure_directories()
 
 
 def main():
-    st.title("📈 Trading Backtester")
-    st.markdown("*Sistema modular de backtesting con arquitectura limpia*")
+    apply_styles()
+    
+    # Header
+    st.title("⚡ Trading Backtester Pro")
+    st.markdown("""
+    <div style='background-color: #1E1E1E; padding: 1rem; border-radius: 10px; border: 1px solid #333; margin-bottom: 2rem;'>
+        Backtesting institucional y Machine Learning avanzado.
+    </div>
+    """, unsafe_allow_html=True)
 
     # Sidebar - Parameters
     with st.sidebar:
-        st.header("⚙️ Parámetros")
+        st.header("⚙️ Configuración")
+        st.markdown("---")
 
         # Data params
         st.subheader("📊 Datos")
@@ -382,36 +391,56 @@ def execute_backtest(
         return None
 
 
-def display_metrics(result):
-    """Muestra métricas principales en cards."""
-    stats = result.stats
+def display_results(result, prices, signals, metadata, ml_model_type, ml_threshold, timeframe, initial_capital):
+    """Muestra métricas principales en cards y gráficos."""
+    if result:
+        # Layout con Tabs
+        tab_overview, tab_analysis, tab_ml = st.tabs(["📈 Resumen", "🔍 Estructura", "🧠 Modelo ML"])
+        
+        with tab_overview:
+            # Top Metrics Row
+            col_m1, col_m2, col_m3, col_m4 = st.columns(4)
+            
+            stats = result.stats
+            
+            def render_metric(col, label, value, delta=None):
+                col.markdown(f"""
+                <div class="css-1r6slb0" style="padding: 1rem; border-radius: 0.5rem; background-color: #262730; border: 1px solid #363945; margin-bottom: 1rem;">
+                    <span style="font-size: 0.8rem; color: #a0a0a0; text-transform: uppercase;">{label}</span>
+                    <div style="font-size: 1.5rem; font-weight: 700; color: #ffffff;">{value}</div>
+                </div>
+                """, unsafe_allow_html=True)
 
-    col1, col2, col3, col4, col5 = st.columns(5)
-
-    with col1:
-        value = stats.get("total_return_pct", 0)
-        st.metric(
-            "Total Return",
-            f"{value:.2f}%",
-            delta_color="normal" if value >= 0 else "inverse",
-        )
-
-    with col2:
-        st.metric("Sharpe Ratio", f"{stats.get('sharpe_ratio', 0):.2f}")
-
-    with col3:
-        value = stats.get("max_drawdown_pct", 0)
-        st.metric(
-            "Max Drawdown",
-            f"{value:.2f}%",
-            delta_color="inverse",
-        )
-
-    with col4:
-        st.metric("Win Rate", f"{stats.get('win_rate_pct', 0):.1f}%")
-
-    with col5:
-        st.metric("Trades", int(stats.get("num_trades", 0)))
+            render_metric(col_m1, "Retorno Total", f"{stats['total_return_pct']:.1f}%")
+            render_metric(col_m2, "Sharpe Ratio", f"{stats['sharpe_ratio']:.2f}")
+            render_metric(col_m3, "Max Drawdown", f"{stats['max_drawdown_pct']:.1f}%")
+            render_metric(col_m4, "Win Rate", f"{stats['win_rate_pct']:.1f}%")
+            
+            # Equity Chart (Professional)
+            st.subheader("Curva de Equity")
+            
+            # Obtener benchmark data (SPY) para comparar
+            loader = DataLoader() # Sin caché para benchmark rápido
+            bench_prices, _ = loader.load("SPY", timeframe=timeframe)
+            benchmark = bench_prices["close"] if not bench_prices.empty else None
+            
+            # Alinear benchmark temporalmente
+            if benchmark is not None:
+                benchmark = benchmark.reindex(result.equity.index).fillna(method='ffill')
+            
+            report_gen = ReportGenerator()
+            fig_equity = report_gen.create_equity_chart(result, benchmark=benchmark)
+            st.plotly_chart(fig_equity, use_container_width=True)
+            
+        with tab_analysis:
+            st.subheader("Detalle de Operaciones")
+            display_trades_table(result)
+            
+        with tab_ml:
+            if ml_model_type:
+                st.info(f"Modelo: {ml_model_type.upper()} | Threshold: {ml_threshold}")
+            else:
+                st.warning("Esta estrategia no usa Machine Learning.")
 
 
 def display_price_chart(prices, signal_result):
@@ -589,6 +618,9 @@ def display_trades_table(result):
     if "exit_price" in display_trades.columns:
         display_cols.append("exit_price")
         col_rename["exit_price"] = "Precio Salida"
+    if "type" in display_trades.columns:
+        display_cols.append("type")
+        col_rename["type"] = "Tipo"
     if "pnl_formatted" in display_trades.columns:
         display_cols.append("pnl_formatted")
         col_rename["pnl_formatted"] = "P&L"
@@ -596,16 +628,19 @@ def display_trades_table(result):
         display_cols.append("return_formatted")
         col_rename["return_formatted"] = "Retorno"
 
-    if display_cols:
-        final_display = display_trades[display_cols].rename(columns=col_rename)
-        st.dataframe(final_display, use_container_width=True)
+    # Mostrar tabla con estilo
+    st.dataframe(
+        display_trades[display_cols].rename(columns=col_rename),
+        use_container_width=True,
+        hide_index=True
+    )
 
-    # Export buttons
-    st.markdown("---")
+    # Export options
+    st.divider()
     col1, col2 = st.columns(2)
     
     with col1:
-        csv = result.trades.to_csv(index=False)
+        csv = trades.to_csv(index=False).encode('utf-8')
         st.download_button(
             label="📥 Descargar CSV",
             data=csv,
@@ -620,7 +655,7 @@ def display_trades_table(result):
             import io
             buffer = io.BytesIO()
             # Copiar trades y remover timezone de columnas datetime
-            trades_for_excel = result.trades.copy()
+            trades_for_excel = trades.copy()
             for col in trades_for_excel.columns:
                 if hasattr(trades_for_excel[col], 'dt') and hasattr(trades_for_excel[col].dt, 'tz'):
                     if trades_for_excel[col].dt.tz is not None:
@@ -634,8 +669,8 @@ def display_trades_table(result):
                 mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
                 use_container_width=True,
             )
-        except ImportError:
-            st.info("Instala openpyxl para export Excel")
+        except Exception as e:
+            st.warning("Para exportar a Excel, instala openpyxl: pip install openpyxl")
 
 
 if __name__ == "__main__":

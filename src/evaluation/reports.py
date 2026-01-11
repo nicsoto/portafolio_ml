@@ -88,3 +88,80 @@ class ReportGenerator:
         lines.append("=" * 40)
 
         return "\n".join(lines)
+
+    def create_equity_chart(self, result: BacktestResult, benchmark: pd.Series = None) -> "go.Figure":
+        """
+        Crea gráfico de equity profesional.
+        
+        Args:
+            result: Resultado del backtest.
+            benchmark: Serie de benchmark (opcional).
+            
+        Returns:
+            Plotly Figure object.
+        """
+        import plotly.graph_objects as go
+        
+        equity = result.equity
+        
+        fig = go.Figure()
+        
+        # Equity Curve
+        fig.add_trace(go.Scatter(
+            x=equity.index,
+            y=equity,
+            mode='lines',
+            name='Portfolio Equity',
+            line=dict(color='#00E676', width=2),
+            fill='tozeroy',
+            fillcolor='rgba(0, 230, 118, 0.1)'
+        ))
+        
+        # Benchmark (si existe)
+        if benchmark is not None and not benchmark.empty:
+            # Rebase benchmark to match initial equity
+            initial_equity = equity.iloc[0]
+            initial_bench = benchmark.iloc[0]
+            bench_rebased = benchmark * (initial_equity / initial_bench)
+            
+            fig.add_trace(go.Scatter(
+                x=bench_rebased.index,
+                y=bench_rebased,
+                mode='lines',
+                name='Benchmark (SPY)',
+                line=dict(color='#A0A0A0', width=1, dash='dash'),
+                opacity=0.7
+            ))
+            
+        # Layout profesional
+        fig.update_layout(
+            template="plotly_dark",
+            paper_bgcolor='rgba(0,0,0,0)',
+            plot_bgcolor='rgba(0,0,0,0)',
+            margin=dict(l=10, r=10, t=30, b=10),
+            height=400,
+            xaxis=dict(
+                showgrid=False,
+                showspikes=True,
+                spikethickness=1,
+                spikedash="dot",
+                spikecolor="#999999",
+                spikemode="across",
+            ),
+            yaxis=dict(
+                showgrid=True,
+                gridcolor='#333333',
+                gridwidth=1,
+                zeroline=False,
+            ),
+            hovermode="x unified",
+            legend=dict(
+                orientation="h",
+                yanchor="bottom",
+                y=1.02,
+                xanchor="right",
+                x=1
+            )
+        )
+        
+        return fig
