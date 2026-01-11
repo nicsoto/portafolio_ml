@@ -85,6 +85,30 @@ def main():
             format="%.3f",
         ) / 100
 
+        # Risk Management
+        st.subheader("🛡️ Gestión de Riesgo")
+        use_sl = st.checkbox("Usar Stop-Loss", value=False)
+        sl_pct = None
+        if use_sl:
+            sl_pct = st.slider(
+                "Stop-Loss (%)",
+                min_value=1.0,
+                max_value=20.0,
+                value=5.0,
+                step=0.5,
+            ) / 100
+
+        use_tp = st.checkbox("Usar Take-Profit", value=False)
+        tp_pct = None
+        if use_tp:
+            tp_pct = st.slider(
+                "Take-Profit (%)",
+                min_value=1.0,
+                max_value=50.0,
+                value=10.0,
+                step=0.5,
+            ) / 100
+
         # Run button
         run_backtest = st.button("🚀 Ejecutar Backtest", type="primary", use_container_width=True)
 
@@ -99,6 +123,8 @@ def main():
                 initial_capital=initial_capital,
                 commission=commission,
                 slippage=slippage,
+                sl_pct=sl_pct,
+                tp_pct=tp_pct,
             )
 
         if result is None:
@@ -168,6 +194,8 @@ def execute_backtest(
     initial_capital: float,
     commission: float,
     slippage: float,
+    sl_pct: float | None = None,
+    tp_pct: float | None = None,
 ):
     """Ejecuta el pipeline completo de backtest."""
     try:
@@ -186,12 +214,22 @@ def execute_backtest(
         signal_result = strategy.generate_signals(prices)
 
         num_entries = signal_result.signals["entries"].sum()
-        st.info(f"🎯 Estrategia {strategy.name}: {num_entries} señales de entrada detectadas")
+        risk_info = ""
+        if sl_pct:
+            risk_info += f" | SL: {sl_pct*100:.1f}%"
+        if tp_pct:
+            risk_info += f" | TP: {tp_pct*100:.1f}%"
+        st.info(f"🎯 Estrategia {strategy.name}: {num_entries} señales{risk_info}")
 
         # 3. Ejecutar backtest
         costs = TradingCosts(commission_pct=commission, slippage_pct=slippage)
         engine = BacktestEngine(initial_capital=initial_capital, costs=costs)
-        result = engine.run(prices=prices, signals=signal_result.signals)
+        result = engine.run(
+            prices=prices,
+            signals=signal_result.signals,
+            sl_pct=sl_pct,
+            tp_pct=tp_pct,
+        )
 
         return prices, signal_result, result, metadata
 

@@ -71,6 +71,8 @@ class BacktestEngine:
         signals: pd.DataFrame,
         execution_delay: int = 1,
         size_pct: float = 1.0,
+        sl_pct: float | None = None,
+        tp_pct: float | None = None,
     ) -> BacktestResult:
         """
         Ejecuta backtest con las señales dadas.
@@ -80,6 +82,8 @@ class BacktestEngine:
             signals: DataFrame con columnas 'entries' y 'exits' (bool).
             execution_delay: Delay en barras para ejecución (1 = t→t+1).
             size_pct: Porcentaje del capital a usar por trade.
+            sl_pct: Stop-loss como porcentaje (e.g., 0.02 = 2% abajo del entry).
+            tp_pct: Take-profit como porcentaje (e.g., 0.05 = 5% arriba del entry).
 
         Returns:
             BacktestResult con trades, equity y stats.
@@ -101,10 +105,16 @@ class BacktestEngine:
         # Usar precio de apertura para ejecución realista
         exec_price = prices["open"] if "open" in prices.columns else prices["close"]
 
+        # Configurar stop-loss y take-profit
+        sl_stop = sl_pct if sl_pct is not None else None
+        tp_stop = tp_pct if tp_pct is not None else None
+
         # Crear portfolio con vectorbt
         portfolio = vbt.Portfolio.from_signals(
             close=prices["close"],
             open=exec_price,
+            high=prices["high"] if "high" in prices.columns else None,
+            low=prices["low"] if "low" in prices.columns else None,
             entries=entries,
             exits=exits,
             init_cash=self.initial_capital,
@@ -112,6 +122,8 @@ class BacktestEngine:
             size_type="percent",
             fees=self.costs.commission_pct,
             slippage=self.costs.slippage_pct,
+            sl_stop=sl_stop,
+            tp_stop=tp_stop,
             freq="1D",  # Se ajusta automáticamente
         )
 
@@ -123,6 +135,10 @@ class BacktestEngine:
 
         # Calcular stats
         stats = self._calculate_stats(portfolio, trades_df)
+
+        # Agregar info de SL/TP a stats
+        stats["sl_pct"] = sl_pct
+        stats["tp_pct"] = tp_pct
 
         return BacktestResult(
             trades=trades_df,
