@@ -99,8 +99,9 @@ class BacktestEngine:
         signals = signals.loc[common_idx]
 
         # Aplicar delay de ejecución (señal en t → ejecución en t+delay)
-        entries = signals["entries"].shift(execution_delay).fillna(False)
-        exits = signals["exits"].shift(execution_delay).fillna(False)
+        # Forzar dtype bool después del shift
+        entries = signals["entries"].shift(execution_delay).fillna(False).astype(bool)
+        exits = signals["exits"].shift(execution_delay).fillna(False).astype(bool)
 
         # Usar precio de apertura para ejecución realista
         exec_price = prices["open"] if "open" in prices.columns else prices["close"]
@@ -108,6 +109,20 @@ class BacktestEngine:
         # Configurar stop-loss y take-profit
         sl_stop = sl_pct if sl_pct is not None else None
         tp_stop = tp_pct if tp_pct is not None else None
+
+        # Inferir frecuencia dinámicamente del índice
+        freq = pd.infer_freq(prices.index)
+        if freq is None and len(prices.index) >= 2:
+            # Fallback: calcular delta entre primeras dos barras
+            delta = prices.index[1] - prices.index[0]
+            # Convertir a string para vectorbt
+            if delta.days >= 1:
+                freq = f"{delta.days}D"
+            elif delta.seconds >= 3600:
+                freq = f"{delta.seconds // 3600}H"
+            else:
+                freq = f"{delta.seconds // 60}T"
+        freq = freq or "1D"
 
         # Crear portfolio con vectorbt
         portfolio = vbt.Portfolio.from_signals(
@@ -124,7 +139,7 @@ class BacktestEngine:
             slippage=self.costs.slippage_pct,
             sl_stop=sl_stop,
             tp_stop=tp_stop,
-            freq="1D",  # Se ajusta automáticamente
+            freq=freq,
         )
 
         # Extraer trades

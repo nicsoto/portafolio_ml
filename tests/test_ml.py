@@ -158,3 +158,83 @@ class TestMLStrategy:
         
         assert "gradient_boosting" in strategy.name
         assert "0.7" in strategy.name
+
+
+class TestNoLookaheadBias:
+    """Test crítico: verifica que no hay lookahead bias en features."""
+
+    def test_features_do_not_change_with_future_data(self):
+        """
+        Verifica que features en día t NO cambian si agregamos datos del día t+1.
+        
+        Si feature[día_t] cambia cuando agregamos día_t+1,
+        significa que tiene lookahead bias (usa info del futuro).
+        """
+        fe = FeatureEngineer()
+        prices = create_test_prices(200)
+        
+        # Tomar subset hasta día 100
+        prices_until_100 = prices.iloc[:100]
+        
+        # Calcular features
+        features_100 = fe.create_features(prices_until_100)
+        
+        # Ahora tomar hasta día 101 (agregamos 1 día más)
+        prices_until_101 = prices.iloc[:101]
+        features_101 = fe.create_features(prices_until_101)
+        
+        # Verificar que features en día 99 NO cambiaron
+        day_99_before = features_100.iloc[-1]
+        day_99_after = features_101.iloc[-2]
+        
+        # Deben ser IDÉNTICOS (tolerancia numérica para floats)
+        pd.testing.assert_series_equal(
+            day_99_before, 
+            day_99_after,
+            check_names=False,
+            rtol=1e-10,
+        )
+
+    def test_features_use_lagged_prices(self):
+        """
+        Verifica que features usan datos de t-1, no t.
+        
+        El primer dato de features debería ser NaN porque 
+        no hay datos anteriores disponibles.
+        """
+        fe = FeatureEngineer()
+        prices = create_test_prices(100)
+        
+        features = fe.create_features(prices)
+        
+        # La primera fila debería tener NaN en features que requieren lookback
+        first_row = features.iloc[0]
+        
+        # return_1d, sma_5, etc. deberían ser NaN en la primera fila
+        # porque usan .shift(1) + rolling
+        assert pd.isna(first_row["return_1d"]), "return_1d debería ser NaN en primera fila"
+        
+    def test_target_predicts_future(self):
+        """
+        Verifica que target predice el futuro, no el pasado.
+        
+        target[día_t] = 1 si precio[día_t+horizon] > precio[día_t]
+        """
+        fe = FeatureEngineer()
+        prices = create_test_prices(100)
+        
+        # Usar prepare_dataset que elimina NaN correctamente
+        features, target = fe.prepare_dataset(prices, horizon=1, dropna=True)
+        
+        # Debería haber menos filas que prices (por NaN eliminados)
+        assert len(target) < len(prices)
+        
+        # Verificar que target[t] refleja si precio[t+1] > precio[t]
+        # Usamos los índices originales del target
+        for idx in target.index[:-1]:  # Excluir último porque no tiene siguiente
+            loc = prices.index.get_loc(idx)
+            if loc + 1 < len(prices):
+                expected = 1 if prices["close"].iloc[loc + 1] > prices["close"].iloc[loc] else 0
+                actual = target.loc[idx]
+                assert actual == expected, f"Target incorrecto en {idx}"
+

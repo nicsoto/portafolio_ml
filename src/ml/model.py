@@ -95,20 +95,25 @@ class MLModel:
         """
         Entrena el modelo y retorna métricas.
         
+        Usa TimeSeriesSplit para validación cruzada (evita data leakage temporal).
+        
         Args:
             X: Features DataFrame.
             y: Target Series.
             test_size: Proporción para test set.
-            cv_folds: Número de folds para cross-validation.
+            cv_folds: Número de folds para cross-validation temporal.
             
         Returns:
             MLModelMetrics con resultados de evaluación.
         """
+        from sklearn.model_selection import TimeSeriesSplit
+        from sklearn.pipeline import Pipeline
+        
         self._feature_names = list(X.columns)
 
-        # Split
+        # Split temporal (train antes, test después)
         X_train, X_test, y_train, y_test = train_test_split(
-            X, y, test_size=test_size, shuffle=False  # No shuffle para series temporales
+            X, y, test_size=test_size, shuffle=False  # NO shuffle para series temporales
         )
 
         # Scale si es necesario
@@ -136,9 +141,18 @@ class MLModel:
             f1=f1_score(y_test, y_pred, zero_division=0),
         )
 
-        # Cross-validation (en training set)
-        if cv_folds > 1:
-            cv_scores = cross_val_score(self._model, X_train_scaled, y_train, cv=cv_folds)
+        # Cross-validation con TimeSeriesSplit y Pipeline (evita data leakage)
+        if cv_folds > 1 and len(X_train) >= cv_folds * 10:
+            tscv = TimeSeriesSplit(n_splits=cv_folds)
+            
+            # Crear pipeline para que scaler se fit en cada fold
+            steps = []
+            if self.scale_features:
+                steps.append(("scaler", StandardScaler()))
+            steps.append(("model", model_class(**self.model_params)))
+            
+            pipe = Pipeline(steps)
+            cv_scores = cross_val_score(pipe, X_train, y_train, cv=tscv)
             metrics.cv_scores = cv_scores.tolist()
 
         # Feature importance
