@@ -20,6 +20,7 @@ from src.strategy import MACrossStrategy
 from src.backtest import BacktestEngine, TradingCosts
 from src.evaluation import ReportGenerator
 from src.config import Settings, ExperimentRun
+from src.ml import FeatureEngineer, MLModel, MLStrategy
 
 # Page config
 st.set_page_config(
@@ -50,14 +51,40 @@ def main():
             index=0,
         )
 
-        # Strategy params
-        st.subheader("🎯 Estrategia MA Cross")
-        fast_period = st.slider("Período MA Rápida", min_value=5, max_value=50, value=10)
-        slow_period = st.slider("Período MA Lenta", min_value=20, max_value=200, value=50)
+        # Strategy selection
+        st.subheader("🎯 Estrategia")
+        strategy_type = st.selectbox(
+            "Tipo de Estrategia",
+            options=["MA Cross", "Machine Learning"],
+            index=0,
+        )
 
-        if fast_period >= slow_period:
-            st.error("⚠️ MA rápida debe ser menor que MA lenta")
-            return
+        # MA Cross params
+        if strategy_type == "MA Cross":
+            fast_period = st.slider("Período MA Rápida", min_value=5, max_value=50, value=10)
+            slow_period = st.slider("Período MA Lenta", min_value=20, max_value=200, value=50)
+            if fast_period >= slow_period:
+                st.error("⚠️ MA rápida debe ser menor que MA lenta")
+                return
+            ml_model_type = None
+            ml_threshold = None
+        else:
+            # ML params
+            fast_period = None
+            slow_period = None
+            ml_model_type = st.selectbox(
+                "Modelo ML",
+                options=["random_forest", "gradient_boosting"],
+                index=0,
+            )
+            ml_threshold = st.slider(
+                "Threshold de Entrada",
+                min_value=0.5,
+                max_value=0.9,
+                value=0.6,
+                step=0.05,
+                help="Probabilidad mínima para generar señal de entrada"
+            )
 
         # Backtest params
         st.subheader("💰 Backtest")
@@ -160,8 +187,11 @@ def main():
             result = execute_backtest(
                 ticker=ticker,
                 timeframe=timeframe,
+                strategy_type=strategy_type,
                 fast_period=fast_period,
                 slow_period=slow_period,
+                ml_model_type=ml_model_type,
+                ml_threshold=ml_threshold,
                 initial_capital=initial_capital,
                 commission=commission,
                 slippage=slippage,
@@ -231,8 +261,11 @@ def main():
 def execute_backtest(
     ticker: str,
     timeframe: str,
-    fast_period: int,
-    slow_period: int,
+    strategy_type: str,
+    fast_period: int | None,
+    slow_period: int | None,
+    ml_model_type: str | None,
+    ml_threshold: float | None,
     initial_capital: float,
     commission: float,
     slippage: float,
@@ -251,9 +284,47 @@ def execute_backtest(
 
         st.success(f"✅ Cargados {len(prices)} barras de {ticker}")
 
-        # 2. Generar señales
-        strategy = MACrossStrategy(fast_period=fast_period, slow_period=slow_period)
-        signal_result = strategy.generate_signals(prices)
+        # 2. Generar señales según tipo de estrategia
+        if strategy_type == "MA Cross":
+            strategy = MACrossStrategy(fast_period=fast_period, slow_period=slow_period)
+            signal_result = strategy.generate_signals(prices)
+        else:
+            # Estrategia ML
+            with st.spinner("🧠 Entrenando modelo ML..."):
+                fe = FeatureEngineer()
+                X, y = fe.prepare_dataset(prices, horizon=1)
+                
+                if len(X) < 50:
+                    st.error("❌ No hay suficientes datos para entrenar ML (mínimo 50 barras)")
+                    return None
+                
+                model = MLModel(model_type=ml_model_type)
+                metrics = model.train(X, y, test_size=0.2)
+                
+                st.success(
+                    f"✅ Modelo entrenado | Accuracy: {metrics.accuracy:.1%} | "
+                    f"Precision: {metrics.precision:.1%} | F1: {metrics.f1:.1%}"
+                )
+                
+                # Mostrar feature importance
+                if metrics.feature_importance:
+                    top_features = sorted(
+                        metrics.feature_importance.items(),
+                        key=lambda x: x[1],
+                        reverse=True
+                    )[:5]
+                    st.info(
+                        "📊 Top 5 features: " +
+                        ", ".join([f"{k} ({v:.2%})" for k, v in top_features])
+                    )
+                
+                strategy = MLStrategy(
+                    model=model,
+                    feature_engineer=fe,
+                    entry_threshold=ml_threshold or 0.6,
+                    exit_threshold=1 - (ml_threshold or 0.6),
+                )
+            signal_result = strategy.generate_signals(prices)
 
         num_entries = signal_result.signals["entries"].sum()
         risk_info = ""
@@ -277,6 +348,8 @@ def execute_backtest(
 
     except Exception as e:
         st.error(f"❌ Error: {e}")
+        import traceback
+        st.code(traceback.format_exc())
         return None
 
 
