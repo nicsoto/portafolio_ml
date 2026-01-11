@@ -109,6 +109,48 @@ def main():
                 step=0.5,
             ) / 100
 
+        # Save/Load configuration
+        st.markdown("---")
+        with st.expander("💾 Guardar/Cargar Config"):
+            # Current config as dict
+            current_config = {
+                "ticker": ticker,
+                "timeframe": timeframe,
+                "fast_period": fast_period,
+                "slow_period": slow_period,
+                "initial_capital": initial_capital,
+                "commission": commission,
+                "slippage": slippage,
+                "sl_pct": sl_pct,
+                "tp_pct": tp_pct,
+            }
+            
+            # Download current config
+            import json
+            config_json = json.dumps(current_config, indent=2)
+            st.download_button(
+                label="📥 Exportar Config",
+                data=config_json,
+                file_name=f"config_{ticker}_{timeframe}.json",
+                mime="application/json",
+                use_container_width=True,
+            )
+            
+            # Upload config
+            uploaded_file = st.file_uploader(
+                "📤 Cargar Config",
+                type=["json"],
+                help="Sube un archivo JSON con configuración guardada"
+            )
+            if uploaded_file is not None:
+                try:
+                    loaded_config = json.load(uploaded_file)
+                    st.success(f"✅ Config cargada: {loaded_config.get('ticker', 'N/A')}")
+                    st.json(loaded_config)
+                    st.info("👆 Aplica estos valores manualmente en los campos de arriba")
+                except Exception as e:
+                    st.error(f"Error cargando config: {e}")
+
         # Run button
         run_backtest = st.button("🚀 Ejecutar Backtest", type="primary", use_container_width=True)
 
@@ -144,8 +186,8 @@ def main():
             display_price_chart(prices, signals)
 
         with col2:
-            st.subheader("📈 Curva de Equity")
-            display_equity_chart(backtest_result)
+            st.subheader("📈 Equity vs Buy & Hold")
+            display_equity_chart(backtest_result, prices=prices, initial_capital=initial_capital)
 
         # Trades table
         st.markdown("---")
@@ -335,45 +377,65 @@ def display_price_chart(prices, signal_result):
     st.plotly_chart(fig, use_container_width=True)
 
 
-def display_equity_chart(result):
-    """Muestra curva de equity."""
+def display_equity_chart(result, prices=None, initial_capital=10000):
+    """Muestra curva de equity con benchmark opcional."""
     if result.equity.empty:
         st.warning("No hay datos de equity para mostrar")
         return
 
     fig = go.Figure()
 
+    # Portfolio equity
     fig.add_trace(
         go.Scatter(
             x=result.equity.index,
             y=result.equity.values,
             mode="lines",
-            name="Portfolio Value",
+            name="Estrategia",
             fill="tozeroy",
-            line=dict(color="rgb(0, 150, 255)"),
+            line=dict(color="rgb(0, 150, 255)", width=2),
         )
     )
+
+    # Benchmark: Buy & Hold
+    if prices is not None and not prices.empty:
+        # Calcular equity de buy & hold
+        initial_price = prices["close"].iloc[0]
+        shares = initial_capital / initial_price
+        benchmark_equity = prices["close"] * shares
+        
+        fig.add_trace(
+            go.Scatter(
+                x=benchmark_equity.index,
+                y=benchmark_equity.values,
+                mode="lines",
+                name="Buy & Hold",
+                line=dict(color="rgb(255, 165, 0)", width=2, dash="dash"),
+            )
+        )
 
     # Add horizontal line at initial capital
     initial = result.equity.iloc[0]
     fig.add_hline(
         y=initial,
-        line_dash="dash",
+        line_dash="dot",
         line_color="gray",
         annotation_text=f"Initial: ${initial:,.0f}",
     )
 
     fig.update_layout(
         height=400,
-        margin=dict(l=0, r=0, t=0, b=0),
+        margin=dict(l=0, r=0, t=30, b=0),
         yaxis_title="Portfolio Value ($)",
+        legend=dict(yanchor="top", y=0.99, xanchor="left", x=0.01),
+        hovermode="x unified",
     )
 
     st.plotly_chart(fig, use_container_width=True)
 
 
 def display_trades_table(result):
-    """Muestra tabla de trades."""
+    """Muestra tabla de trades con formato mejorado."""
     if result.trades.empty:
         st.warning("No hay trades para mostrar")
         return
@@ -381,23 +443,91 @@ def display_trades_table(result):
     # Format for display
     trades = result.trades.copy()
 
-    # Add formatting
-    if "pnl" in trades.columns:
-        trades["pnl"] = trades["pnl"].apply(lambda x: f"${x:,.2f}")
-    if "return_pct" in trades.columns:
-        trades["return_pct"] = trades["return_pct"].apply(lambda x: f"{x*100:.2f}%")
+    # Calcular métricas adicionales si hay trades
+    if not trades.empty and "pnl" in trades.columns:
+        winning_trades = trades[trades["pnl"] > 0]
+        losing_trades = trades[trades["pnl"] < 0]
+        
+        # Mostrar resumen de trades
+        col1, col2, col3, col4 = st.columns(4)
+        with col1:
+            st.metric("Total Trades", len(trades))
+        with col2:
+            st.metric("Ganadores", len(winning_trades), delta=f"{len(winning_trades)/len(trades)*100:.0f}%" if len(trades) > 0 else "0%")
+        with col3:
+            avg_win = winning_trades["pnl"].mean() if len(winning_trades) > 0 else 0
+            st.metric("Promedio Ganador", f"${avg_win:,.2f}")
+        with col4:
+            avg_loss = losing_trades["pnl"].mean() if len(losing_trades) > 0 else 0
+            st.metric("Promedio Perdedor", f"${avg_loss:,.2f}")
 
-    st.dataframe(trades, use_container_width=True)
+    # Formatear columnas para display
+    display_trades = trades.copy()
+    if "pnl" in display_trades.columns:
+        display_trades["pnl_formatted"] = display_trades["pnl"].apply(lambda x: f"${x:,.2f}")
+    if "return_pct" in display_trades.columns:
+        display_trades["return_formatted"] = display_trades["return_pct"].apply(lambda x: f"{x*100:.2f}%")
+    if "entry_price" in display_trades.columns:
+        display_trades["entry_price"] = display_trades["entry_price"].apply(lambda x: f"${x:,.2f}")
+    if "exit_price" in display_trades.columns:
+        display_trades["exit_price"] = display_trades["exit_price"].apply(lambda x: f"${x:,.2f}")
 
-    # Export button
-    if st.button("📥 Exportar CSV"):
+    # Seleccionar columnas para mostrar
+    display_cols = []
+    col_rename = {}
+    if "entry_time" in display_trades.columns:
+        display_cols.append("entry_time")
+        col_rename["entry_time"] = "Entrada"
+    if "exit_time" in display_trades.columns:
+        display_cols.append("exit_time")
+        col_rename["exit_time"] = "Salida"
+    if "entry_price" in display_trades.columns:
+        display_cols.append("entry_price")
+        col_rename["entry_price"] = "Precio Entrada"
+    if "exit_price" in display_trades.columns:
+        display_cols.append("exit_price")
+        col_rename["exit_price"] = "Precio Salida"
+    if "pnl_formatted" in display_trades.columns:
+        display_cols.append("pnl_formatted")
+        col_rename["pnl_formatted"] = "P&L"
+    if "return_formatted" in display_trades.columns:
+        display_cols.append("return_formatted")
+        col_rename["return_formatted"] = "Retorno"
+
+    if display_cols:
+        final_display = display_trades[display_cols].rename(columns=col_rename)
+        st.dataframe(final_display, use_container_width=True)
+
+    # Export buttons
+    st.markdown("---")
+    col1, col2 = st.columns(2)
+    
+    with col1:
         csv = result.trades.to_csv(index=False)
         st.download_button(
-            label="Descargar trades.csv",
+            label="📥 Descargar CSV",
             data=csv,
             file_name="trades.csv",
             mime="text/csv",
+            use_container_width=True,
         )
+    
+    with col2:
+        # Excel export
+        try:
+            import io
+            buffer = io.BytesIO()
+            result.trades.to_excel(buffer, index=False, engine='openpyxl')
+            buffer.seek(0)
+            st.download_button(
+                label="📊 Descargar Excel",
+                data=buffer,
+                file_name="trades.xlsx",
+                mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                use_container_width=True,
+            )
+        except ImportError:
+            st.info("Instala openpyxl para export Excel")
 
 
 if __name__ == "__main__":
