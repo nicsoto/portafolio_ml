@@ -8,6 +8,8 @@ from pathlib import Path
 import pandas as pd
 import numpy as np
 from sklearn.ensemble import RandomForestClassifier, GradientBoostingClassifier
+from xgboost import XGBClassifier
+from lightgbm import LGBMClassifier
 from sklearn.model_selection import train_test_split, cross_val_score
 from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score
 from sklearn.preprocessing import StandardScaler
@@ -32,13 +34,17 @@ class MLModel:
     Wrapper para modelos de ML de clasificación.
     
     Soporta:
-    - RandomForest (default)
-    - GradientBoosting
+    - RandomForest
+    - GradientBoosting (sklearn)
+    - XGBoost
+    - LightGBM
     """
 
     SUPPORTED_MODELS = {
         "random_forest": RandomForestClassifier,
         "gradient_boosting": GradientBoostingClassifier,
+        "xgboost": XGBClassifier,
+        "lightgbm": LGBMClassifier,
     }
 
     def __init__(
@@ -49,7 +55,7 @@ class MLModel:
     ):
         """
         Args:
-            model_type: Tipo de modelo ('random_forest' o 'gradient_boosting').
+            model_type: Tipo de modelo ('random_forest', 'xgboost', etc).
             model_params: Parámetros para el modelo.
             scale_features: Si escalar features antes de entrenar.
         """
@@ -75,7 +81,7 @@ class MLModel:
                 "min_samples_leaf": 5,
                 "random_state": 42,
                 "n_jobs": -1,
-                "class_weight": "balanced",  # Maneja clases desbalanceadas
+                "class_weight": "balanced",
             }
         elif model_type == "gradient_boosting":
             return {
@@ -83,6 +89,26 @@ class MLModel:
                 "max_depth": 5,
                 "learning_rate": 0.1,
                 "random_state": 42,
+            }
+        elif model_type == "xgboost":
+            return {
+                "n_estimators": 100,
+                "max_depth": 6,
+                "learning_rate": 0.1,
+                "random_state": 42,
+                "n_jobs": -1,
+                # XGBoost specific for imbalanced data (optional)
+                # "scale_pos_weight": 1, 
+            }
+        elif model_type == "lightgbm":
+            return {
+                "n_estimators": 100,
+                "max_depth": -1,
+                "num_leaves": 31,
+                "learning_rate": 0.1,
+                "random_state": 42,
+                "n_jobs": -1,
+                "class_weight": "balanced",
             }
         return {}
 

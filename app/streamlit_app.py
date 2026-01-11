@@ -68,13 +68,14 @@ def main():
                 return
             ml_model_type = None
             ml_threshold = None
+            optimize_params = False
         else:
             # ML params
             fast_period = None
             slow_period = None
             ml_model_type = st.selectbox(
                 "Modelo ML",
-                options=["random_forest", "gradient_boosting"],
+                options=["random_forest", "gradient_boosting", "xgboost", "lightgbm"],
                 index=0,
             )
             ml_threshold = st.slider(
@@ -85,6 +86,17 @@ def main():
                 step=0.05,
                 help="Probabilidad mínima para generar señal de entrada"
             )
+            
+            # Optimization controls
+            st.divider()
+            optimize_params = st.checkbox(
+                "✨ Optimizar Hiperparámetros (Optuna)",
+                help="Busca automáticamente la mejor configuración (tarda más)"
+            )
+            if optimize_params:
+                n_trials = st.slider("Intentos de optimización", 10, 100, 20)
+            else:
+                n_trials = 0
 
         # Backtest params
         st.subheader("💰 Backtest")
@@ -197,6 +209,10 @@ def main():
                 slippage=slippage,
                 sl_pct=sl_pct,
                 tp_pct=tp_pct,
+                optimize_params=optimize_params,
+                n_trials=n_trials,
+            )
+                tp_pct=tp_pct,
             )
 
         if result is None:
@@ -259,24 +275,18 @@ def main():
 
 
 def execute_backtest(
-    ticker: str,
-    timeframe: str,
-    strategy_type: str,
-    fast_period: int | None,
-    slow_period: int | None,
-    ml_model_type: str | None,
-    ml_threshold: float | None,
-    initial_capital: float,
-    commission: float,
-    slippage: float,
-    sl_pct: float | None = None,
-    tp_pct: float | None = None,
+    ticker: str, timeframe: str, strategy_type: str,
+    fast_period: int | None, slow_period: int | None,
+    ml_model_type: str | None, ml_threshold: float | None,
+    initial_capital: float, commission: float, slippage: float,
+    sl_pct: float | None = None, tp_pct: float | None = None,
+    optimize_params: bool = False, n_trials: int = 20,
 ):
     """Ejecuta el pipeline completo de backtest."""
     try:
         # 1. Cargar datos
-        loader = DataLoader(cache_dir=settings.data_cache_dir)
-        prices, metadata = loader.load(ticker=ticker, timeframe=timeframe)
+        loader = DataLoader()
+        prices, _ = loader.load(ticker, timeframe=timeframe)
 
         if prices.empty:
             st.error(f"❌ No se encontraron datos para {ticker}")
@@ -290,39 +300,58 @@ def execute_backtest(
             signal_result = strategy.generate_signals(prices)
         else:
             # Estrategia ML
-            with st.spinner("🧠 Entrenando modelo ML..."):
-                fe = FeatureEngineer()
-                X, y = fe.prepare_dataset(prices, horizon=1)
-                
-                if len(X) < 50:
-                    st.error("❌ No hay suficientes datos para entrenar ML (mínimo 50 barras)")
-                    return None
-                
-                model = MLModel(model_type=ml_model_type)
-                metrics = model.train(X, y, test_size=0.2)
-                
-                st.success(
-                    f"✅ Modelo entrenado | Accuracy: {metrics.accuracy:.1%} | "
-                    f"Precision: {metrics.precision:.1%} | F1: {metrics.f1:.1%}"
+            from src.ml.optimization import ModelOptimizer
+            import numpy as np # Import numpy for mean/std in CV scores
+            
+            fe = FeatureEngineer()
+            
+            # Preparar dataset
+            # Nota: para entrenamiento usamos horizonte=1 (predicción siguiente vela)
+            # Podría ser parámetro configurable
+            features, target = fe.prepare_dataset(prices, horizon=1, dropna=True)
+            
+            # Separar train/test (simple split temporal 80/20)
+            train_size = int(len(features) * 0.8)
+            X_train = features.iloc[:train_size]
+            y_train = target.iloc[:train_size]
+            X_test = features.iloc[train_size:]
+            y_test = target.iloc[train_size:]
+            
+            # Optimización de hiperparámetros si se solicita
+            model_params = None
+            if optimize_params:
+                with st.spinner(f"✨ Optimizando {ml_model_type} con Optuna ({n_trials} intentos)..."):
+                    optimizer = ModelOptimizer(n_trials=n_trials, cv_folds=5)
+                    best_params = optimizer.optimize(X_train, y_train, model_type=ml_model_type)
+                    st.success("✅ Optimización completada!")
+                    with st.expander("Ver mejores parámetros"):
+                        st.json(best_params)
+                    model_params = best_params
+
+            # Entrenar modelo
+            with st.spinner(f"Entrenando modelo {ml_model_type}..."):
+                model = MLModel(
+                    model_type=ml_model_type,
+                    model_params=model_params
                 )
+                metrics = model.train(X_train, y_train)
                 
-                # Mostrar feature importance
-                if metrics.feature_importance:
-                    top_features = sorted(
-                        metrics.feature_importance.items(),
-                        key=lambda x: x[1],
-                        reverse=True
-                    )[:5]
-                    st.info(
-                        "📊 Top 5 features: " +
-                        ", ".join([f"{k} ({v:.2%})" for k, v in top_features])
-                    )
-                
+                # Mostrar métricas ML en sidebar o expander
+                with st.expander("📊 Métricas del Modelo (Training/Test Split)", expanded=True):
+                    cols = st.columns(4)
+                    cols[0].metric("Accuracy", f"{metrics.accuracy:.2%}")
+                    cols[1].metric("Precision", f"{metrics.precision:.2%}")
+                    cols[2].metric("Recall", f"{metrics.recall:.2%}")
+                    cols[3].metric("F1 Score", f"{metrics.f1:.2%}")
+                    
+                    if metrics.cv_scores:
+                        st.caption(f"CV Score (TimeSplit): {np.mean(metrics.cv_scores):.3f} ± {np.std(metrics.cv_scores):.3f}")
+
+                # Estrategia ML
                 strategy = MLStrategy(
                     model=model,
                     feature_engineer=fe,
-                    entry_threshold=ml_threshold or 0.6,
-                    exit_threshold=1 - (ml_threshold or 0.6),
+                    entry_threshold=ml_threshold
                 )
             signal_result = strategy.generate_signals(prices)
 
