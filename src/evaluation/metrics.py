@@ -151,3 +151,69 @@ def get_periods_per_year(timeframe: str) -> int:
         "1mo": 12,
     }
     return mapping.get(timeframe, 252)
+
+
+def calculate_sortino_ratio(
+    returns: pd.Series,
+    rf: float = 0.0,
+    periods_per_year: int = 252,
+) -> float:
+    """
+    Calcula Sortino ratio anualizado.
+    
+    Similar a Sharpe pero solo penaliza la volatilidad negativa (downside risk).
+    Mejor métrica para evaluar riesgo real de pérdida.
+    
+    Args:
+        returns: Serie de retornos.
+        rf: Risk-free rate anualizado.
+        periods_per_year: Períodos por año.
+        
+    Returns:
+        Sortino ratio anualizado.
+    """
+    if returns.empty:
+        return 0.0
+    
+    rf_per_period = rf / periods_per_year
+    excess_returns = returns - rf_per_period
+    
+    # Solo retornos negativos para downside deviation
+    downside_returns = excess_returns[excess_returns < 0]
+    
+    if len(downside_returns) == 0 or downside_returns.std() == 0:
+        return float("inf") if excess_returns.mean() > 0 else 0.0
+    
+    downside_std = downside_returns.std()
+    sortino = excess_returns.mean() / downside_std
+    
+    return sortino * np.sqrt(periods_per_year)
+
+
+def calculate_calmar_ratio(
+    equity: pd.Series,
+    periods_per_year: int = 252,
+) -> float:
+    """
+    Calcula Calmar ratio (CAGR / Max Drawdown).
+    
+    Mide retorno relativo al peor drawdown.
+    Importante para saber cuánto tiempo tomaría recuperarse.
+    
+    Args:
+        equity: Serie con valores del portfolio.
+        periods_per_year: Períodos por año.
+        
+    Returns:
+        Calmar ratio. Mayor es mejor.
+    """
+    if equity.empty or len(equity) < 2:
+        return 0.0
+    
+    cagr = calculate_cagr(equity, periods_per_year)
+    max_dd = abs(calculate_max_drawdown(equity))
+    
+    if max_dd == 0:
+        return float("inf") if cagr > 0 else 0.0
+    
+    return cagr / max_dd

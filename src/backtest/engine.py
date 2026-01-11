@@ -125,9 +125,12 @@ class BacktestEngine:
         freq = freq or "1D"
 
         # Crear portfolio con vectorbt
+        # NOTA: price= define el precio de ejecución de órdenes
+        #       open= se usa para stops intrabar
         portfolio = vbt.Portfolio.from_signals(
             close=prices["close"],
-            open=exec_price,
+            price=exec_price,  # 🔥 Precio de ejecución de órdenes
+            open=prices["open"] if "open" in prices.columns else None,
             high=prices["high"] if "high" in prices.columns else None,
             low=prices["low"] if "low" in prices.columns else None,
             entries=entries,

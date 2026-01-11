@@ -75,6 +75,7 @@ class MLModel:
                 "min_samples_leaf": 5,
                 "random_state": 42,
                 "n_jobs": -1,
+                "class_weight": "balanced",  # Maneja clases desbalanceadas
             }
         elif model_type == "gradient_boosting":
             return {
