@@ -590,7 +590,13 @@ def display_trades_table(result):
         try:
             import io
             buffer = io.BytesIO()
-            result.trades.to_excel(buffer, index=False, engine='openpyxl')
+            # Copiar trades y remover timezone de columnas datetime
+            trades_for_excel = result.trades.copy()
+            for col in trades_for_excel.columns:
+                if hasattr(trades_for_excel[col], 'dt') and hasattr(trades_for_excel[col].dt, 'tz'):
+                    if trades_for_excel[col].dt.tz is not None:
+                        trades_for_excel[col] = trades_for_excel[col].dt.tz_localize(None)
+            trades_for_excel.to_excel(buffer, index=False, engine='openpyxl')
             buffer.seek(0)
             st.download_button(
                 label="📊 Descargar Excel",

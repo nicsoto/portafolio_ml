@@ -155,7 +155,10 @@ class FeatureEngineer:
         Target en día t predice si el precio subirá en los próximos 'horizon' días.
         
         Fórmula:
-            target[t] = 1 si (precio[t+horizon] - precio[t]) / precio[t] > threshold
+            target[t] = 1 si (precio[t+horizon] / precio[t]) - 1 > threshold
+            
+        Equivalente a:
+            target[t] = 1 si precio[t+horizon] > precio[t] * (1 + threshold)
         
         Ejemplo con horizon=1, threshold=0.0:
             target[t] = 1 si precio[t+1] > precio[t]
