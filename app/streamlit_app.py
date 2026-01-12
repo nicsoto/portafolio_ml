@@ -230,23 +230,78 @@ def main():
         # Metrics row
         display_metrics(backtest_result)
 
-        # Charts
-        st.markdown("---")
-        col1, col2 = st.columns(2)
-
-        with col1:
-            st.subheader("📊 Precio y Señales")
-            display_price_chart(prices, signals)
-
-        with col2:
-            st.subheader("📈 Equity vs Buy & Hold")
-            display_equity_chart(backtest_result, prices=prices, initial_capital=initial_capital)
-
-        # Trades table
-        st.markdown("---")
-        st.subheader("📋 Historial de Trades")
-        display_trades_table(backtest_result)
-
+        # Tabs para diferentes vistas
+        tab_charts, tab_trades, tab_advanced = st.tabs([
+            "📊 Gráficos", 
+            "📋 Trades", 
+            "🔬 Análisis Avanzado"
+        ])
+        
+        with tab_charts:
+            col1, col2 = st.columns(2)
+            with col1:
+                st.subheader("Precio y Señales")
+                display_price_chart(prices, signals)
+            with col2:
+                st.subheader("Equity vs Buy & Hold")
+                display_equity_chart(backtest_result, prices=prices, initial_capital=initial_capital)
+        
+        with tab_trades:
+            display_trades_table(backtest_result)
+        
+        with tab_advanced:
+            st.markdown("### 🔬 Análisis de Robustez")
+            
+            adv_col1, adv_col2 = st.columns(2)
+            
+            with adv_col1:
+                st.markdown("#### 🎲 Monte Carlo Simulation")
+                with st.spinner("Ejecutando 1000 simulaciones..."):
+                    from src.evaluation import MonteCarloSimulator
+                    mc = MonteCarloSimulator(n_simulations=1000)
+                    returns = backtest_result.equity.pct_change().dropna()
+                    if len(returns) > 10:
+                        mc_result = mc.simulate(returns)
+                        
+                        # Métricas MC
+                        mc_cols = st.columns(3)
+                        mc_cols[0].metric("VaR 95%", f"{mc_result.var_95*100:.1f}%")
+                        mc_cols[1].metric("P(Ganancia)", f"{mc_result.prob_positive*100:.0f}%")
+                        mc_cols[2].metric("Max DD Esperado", f"{mc_result.mean_max_drawdown*100:.1f}%")
+                        
+                        # Fan Chart
+                        fig_mc = mc.create_fan_chart(mc_result)
+                        st.plotly_chart(fig_mc, use_container_width=True)
+                    else:
+                        st.warning("Datos insuficientes para Monte Carlo")
+            
+            with adv_col2:
+                st.markdown("#### 🔄 Walk-Forward Optimization")
+                if strategy_type == "MA Cross":
+                    with st.spinner("Ejecutando WFO (puede tardar)..."):
+                        from src.optimization import WalkForwardOptimizer
+                        wfo = WalkForwardOptimizer(n_splits=3, train_pct=0.7, n_trials=15)
+                        try:
+                            wfo_result = wfo.optimize(
+                                prices=prices,
+                                strategy_class=MACrossStrategy,
+                                param_space={'fast_period': (5, 30), 'slow_period': (30, 100)}
+                            )
+                            
+                            # Métricas WFO
+                            wfo_cols = st.columns(3)
+                            wfo_cols[0].metric("OOS Sharpe", f"{wfo_result.oos_sharpe:.2f}")
+                            wfo_cols[1].metric("Estabilidad", f"{wfo_result.param_stability:.2f}")
+                            wfo_cols[2].metric("Overfitting", wfo_result.summary['Overfitting Risk'])
+                            
+                            # Matriz de parámetros
+                            st.markdown("**Parámetros por Fold:**")
+                            st.dataframe(wfo_result.param_matrix, use_container_width=True)
+                        except Exception as e:
+                            st.error(f"Error en WFO: {e}")
+                else:
+                    st.info("WFO disponible solo para estrategia MA Cross")
+        
         # Metadata
         with st.expander("ℹ️ Metadata del Dataset"):
             st.json({
