@@ -15,7 +15,11 @@ def sma(series: pd.Series, period: int) -> pd.Series:
     Returns:
         Serie con SMA calculado.
     """
-    return ta.sma(series, length=period)
+    result = ta.sma(series, length=period)
+    if result is None:
+        # Fallback: usar pandas rolling si pandas-ta falla
+        return series.rolling(window=period).mean()
+    return result
 
 
 def ema(series: pd.Series, period: int) -> pd.Series:
@@ -29,7 +33,10 @@ def ema(series: pd.Series, period: int) -> pd.Series:
     Returns:
         Serie con EMA calculado.
     """
-    return ta.ema(series, length=period)
+    result = ta.ema(series, length=period)
+    if result is None:
+        return series.ewm(span=period, adjust=False).mean()
+    return result
 
 
 def rsi(series: pd.Series, period: int = 14) -> pd.Series:
@@ -43,7 +50,15 @@ def rsi(series: pd.Series, period: int = 14) -> pd.Series:
     Returns:
         Serie con RSI (0-100).
     """
-    return ta.rsi(series, length=period)
+    result = ta.rsi(series, length=period)
+    if result is None:
+        # Fallback manual RSI
+        delta = series.diff()
+        gain = delta.where(delta > 0, 0).rolling(window=period).mean()
+        loss = (-delta.where(delta < 0, 0)).rolling(window=period).mean()
+        rs = gain / loss
+        return 100 - (100 / (1 + rs))
+    return result
 
 
 def atr(
@@ -61,7 +76,15 @@ def atr(
     Returns:
         Serie con ATR.
     """
-    return ta.atr(high=high, low=low, close=close, length=period)
+    result = ta.atr(high=high, low=low, close=close, length=period)
+    if result is None:
+        # Fallback manual ATR
+        tr1 = high - low
+        tr2 = abs(high - close.shift())
+        tr3 = abs(low - close.shift())
+        tr = pd.concat([tr1, tr2, tr3], axis=1).max(axis=1)
+        return tr.rolling(window=period).mean()
+    return result
 
 
 def bollinger_bands(
