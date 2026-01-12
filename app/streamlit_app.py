@@ -248,6 +248,30 @@ def main():
         
         with tab_trades:
             display_trades_table(backtest_result)
+            
+            # Botón para generar PDF Report
+            st.divider()
+            col_pdf, col_space = st.columns([1, 3])
+            with col_pdf:
+                if st.button("📄 Generar PDF Report", type="secondary"):
+                    with st.spinner("Generando PDF..."):
+                        from src.evaluation.pdf_report import AlphaReportGenerator
+                        pdf_gen = AlphaReportGenerator(
+                            title="Alpha Strategy Report",
+                            subtitle=f"{strategy_type} Strategy Analysis"
+                        )
+                        pdf_bytes = pdf_gen.generate(
+                            result=backtest_result,
+                            metadata=metadata,
+                            strategy_name=strategy_type,
+                            strategy_params={"ticker": ticker, "timeframe": timeframe}
+                        )
+                        st.download_button(
+                            label="⬇️ Descargar PDF",
+                            data=pdf_bytes,
+                            file_name=f"alpha_report_{ticker}_{datetime.now().strftime('%Y%m%d')}.pdf",
+                            mime="application/pdf"
+                        )
         
         with tab_advanced:
             st.markdown("### 🔬 Análisis de Robustez")
