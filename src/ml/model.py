@@ -337,10 +337,18 @@ class MLStrategy(Strategy):
             # Exit: probabilidad < exit_threshold
             entries.loc[features_clean.index] = proba_series > self.entry_threshold
             exits.loc[features_clean.index] = proba_series < self.exit_threshold
+            
+            # 🔥 Limpiar conflictos: si entries y exits son True simultáneamente, priorizar entries
+            conflict_mask = entries & exits
+            exits = exits & ~conflict_mask
 
             # Agregar probabilidad a features
             features["ml_probability"] = np.nan
             features.loc[features_clean.index, "ml_probability"] = proba
+        
+        # Forzar dtype bool para evitar problemas con pandas
+        entries = entries.astype(bool)
+        exits = exits.astype(bool)
 
         signals = pd.DataFrame({"entries": entries, "exits": exits}, index=prices.index)
 

@@ -437,6 +437,21 @@ def execute_backtest(
                     
                     if metrics.cv_scores:
                         st.caption(f"CV Score (TimeSplit): {np.mean(metrics.cv_scores):.3f} ± {np.std(metrics.cv_scores):.3f}")
+                    
+                    # Feature Importance Chart
+                    if metrics.feature_importance:
+                        import plotly.express as px
+                        fi_df = pd.DataFrame({
+                            'feature': list(metrics.feature_importance.keys()),
+                            'importance': list(metrics.feature_importance.values())
+                        }).sort_values('importance', ascending=True).tail(15)
+                        
+                        fig = px.bar(fi_df, x='importance', y='feature', 
+                                     orientation='h', title='Top 15 Feature Importance')
+                        fig.update_layout(template="plotly_dark", height=400,
+                                          paper_bgcolor='rgba(0,0,0,0)', 
+                                          plot_bgcolor='rgba(0,0,0,0)')
+                        st.plotly_chart(fig, use_container_width=True)
 
                 # Estrategia ML
                 strategy = MLStrategy(
@@ -476,6 +491,7 @@ def display_metrics(result):
     """Muestra métricas principales en cards."""
     stats = result.stats
 
+    # Primera fila: métricas principales
     col1, col2, col3, col4, col5 = st.columns(5)
 
     with col1:
@@ -502,6 +518,24 @@ def display_metrics(result):
 
     with col5:
         st.metric("Trades", int(stats.get("num_trades", 0)))
+    
+    # Segunda fila: métricas avanzadas
+    col_a, col_b, col_c, col_d, col_e = st.columns(5)
+    
+    with col_a:
+        st.metric("Sortino", f"{stats.get('sortino_ratio', 0):.2f}")
+    
+    with col_b:
+        st.metric("Calmar", f"{stats.get('calmar_ratio', 0):.2f}")
+    
+    with col_c:
+        st.metric("Profit Factor", f"{stats.get('profit_factor', 0):.2f}")
+    
+    with col_d:
+        st.metric("Avg Trade", f"{stats.get('avg_trade_pct', 0):.2f}%")
+    
+    with col_e:
+        st.metric("Annual Return", f"{stats.get('annual_return_pct', 0):.1f}%")
 
 
 def display_results(result, prices, signals, metadata, ml_model_type, ml_threshold, timeframe, initial_capital):
