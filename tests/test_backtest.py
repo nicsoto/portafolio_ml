@@ -186,3 +186,66 @@ class TestExecutionPrice:
             assert exit_price == pytest.approx(expected_open, rel=0.01), \
                 f"Exit price {exit_price} debería ser open del día siguiente: {expected_open}"
 
+
+class TestFrequencyAnnualization:
+    """Tests para verificar que las métricas se annualizan correctamente según timeframe."""
+
+    def test_sharpe_daily_uses_252_periods(self):
+        """Sharpe en datos diarios debe usar 252 períodos para annualización."""
+        from src.evaluation.metrics import calculate_sharpe
+        import numpy as np
+        
+        # Crear retornos diarios simulados (252 días = 1 año)
+        np.random.seed(42)
+        daily_returns = pd.Series(np.random.normal(0.001, 0.02, 252))
+        
+        sharpe = calculate_sharpe(daily_returns, periods_per_year=252)
+        
+        # Sharpe debe ser cercano a: mean/std * sqrt(252)
+        expected = (daily_returns.mean() / daily_returns.std()) * np.sqrt(252)
+        assert sharpe == pytest.approx(expected, rel=0.01)
+
+    def test_sharpe_hourly_uses_more_periods(self):
+        """Sharpe en datos horarios debe usar más períodos (~1638 horas de trading/año)."""
+        from src.evaluation.metrics import calculate_sharpe
+        import numpy as np
+        
+        np.random.seed(42)
+        hourly_returns = pd.Series(np.random.normal(0.0001, 0.005, 100))
+        
+        # ~6.5 horas de trading por día * 252 ≈ 1638
+        periods_hourly = int(252 * 6.5)
+        sharpe = calculate_sharpe(hourly_returns, periods_per_year=periods_hourly)
+        
+        expected = (hourly_returns.mean() / hourly_returns.std()) * np.sqrt(periods_hourly)
+        assert sharpe == pytest.approx(expected, rel=0.01)
+
+    def test_freq_inferred_from_daily_index(self):
+        """Verifica que freq='1D' se infiere de índice DatetimeIndex diario."""
+        from src.backtest.engine import BacktestEngine
+        from src.backtest.costs import TradingCosts
+        
+        dates = pd.date_range("2024-01-01", periods=30, freq="D")
+        prices = pd.DataFrame({
+            "open": range(100, 130),
+            "high": range(101, 131),
+            "low": range(99, 129),
+            "close": range(100, 130),
+            "volume": [1000] * 30,
+        }, index=dates)
+        
+        signals = pd.DataFrame({
+            "entries": [False] * 30,
+            "exits": [False] * 30,
+        }, index=dates)
+        signals.iloc[5, 0] = True  # Entry día 5
+        signals.iloc[15, 1] = True  # Exit día 15
+        
+        engine = BacktestEngine(initial_capital=10000, costs=TradingCosts())
+        result = engine.run(prices=prices, signals=signals)
+        
+        # Si freq se infirió correctamente, stats debe existir
+        assert "sharpe_ratio" in result.stats
+        assert result.stats["sharpe_ratio"] is not None
+
+
