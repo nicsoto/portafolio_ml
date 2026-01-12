@@ -150,8 +150,64 @@ class DataLoader:
 
         # Asegurar que el índice tiene nombre
         df.index.name = "timestamp"
+        
+        # Validar calidad de datos (especialmente para intradía)
+        self._validate_data_quality(df, ticker, timeframe)
 
         return df
+    
+    def _validate_data_quality(self, df: pd.DataFrame, ticker: str, timeframe: str):
+        """
+        Valida calidad de datos y emite warnings si hay problemas.
+        
+        Especialmente importante para datos intradía de yfinance.
+        """
+        import warnings
+        
+        if df.empty:
+            return
+        
+        issues = []
+        
+        # 1. Verificar duplicados en índice
+        if df.index.duplicated().any():
+            n_dups = df.index.duplicated().sum()
+            issues.append(f"⚠️ {n_dups} timestamps duplicados detectados")
+        
+        # 2. Detectar gaps en datos intradía
+        if timeframe in ["1m", "5m", "15m", "30m", "1h"]:
+            expected_freq = {"1m": "1min", "5m": "5min", "15m": "15min", 
+                           "30m": "30min", "1h": "1h"}[timeframe]
+            
+            # Calcular gaps (solo días de trading, ignorar noches/fines de semana)
+            time_diffs = df.index.to_series().diff()
+            if len(time_diffs) > 1:
+                # Gap grande = más de 4x el intervalo esperado (para ignorar overnight)
+                interval_td = pd.Timedelta(expected_freq)
+                large_gaps = (time_diffs > interval_td * 4).sum()
+                if large_gaps > 10:
+                    issues.append(f"⚠️ {large_gaps} gaps detectados en datos (normal para overnight/weekends)")
+        
+        # 3. Verificar rango de datos para intradía
+        if timeframe in self.INTRADAY_LIMITS:
+            days_of_data = (df.index[-1] - df.index[0]).days
+            expected_days = self.INTRADAY_LIMITS[timeframe]
+            if days_of_data < expected_days * 0.5:
+                issues.append(f"⚠️ Solo {days_of_data} días de datos (yfinance limita intradía a ~{expected_days} días)")
+        
+        # 4. Verificar valores NaN
+        nan_count = df.isna().sum().sum()
+        if nan_count > 0:
+            issues.append(f"⚠️ {nan_count} valores NaN en datos")
+        
+        # 5. Verificar precios cero o negativos
+        if (df[["open", "high", "low", "close"]] <= 0).any().any():
+            issues.append("⚠️ Precios cero o negativos detectados")
+        
+        # Emitir warnings consolidados
+        if issues:
+            warning_msg = f"\n[DataLoader] {ticker} ({timeframe}):\n" + "\n".join(issues)
+            warnings.warn(warning_msg, UserWarning, stacklevel=3)
 
     def _filter_by_dates(
         self,
