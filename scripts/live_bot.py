@@ -47,7 +47,8 @@ def run_bot(ticker: str, strategy_type: str, interval_minutes: int):
     executor = AlpacaExecutor()
     
     if strategy_type == "ma_cross":
-        strategy = MACrossStrategy(fast_period=10, slow_period=50)
+        # Parámetros más rápidos para generar señales más frecuentes
+        strategy = MACrossStrategy(fast_period=5, slow_period=20)
     else:
         raise ValueError(f"Estrategia no soportada: {strategy_type}")
     
