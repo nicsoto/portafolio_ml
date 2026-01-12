@@ -1,7 +1,6 @@
 //+------------------------------------------------------------------+
 //|                                              SocketServer.mq5    |
 //|                        Socket Server para recibir órdenes Python |
-//|                           Escucha en puerto 5555 por defecto     |
 //+------------------------------------------------------------------+
 #property copyright "Trading Bot"
 #property link      ""
@@ -9,248 +8,213 @@
 #property strict
 
 // Configuración
-input int    ServerPort = 5555;       // Puerto del servidor
-input int    MaxClients = 1;          // Máximo de clientes
-input bool   EnableLogging = true;    // Habilitar logs
+input int ServerPort = 5555;
+input bool EnableLogging = true;
 
 // Variables globales
-int serverSocket = INVALID_HANDLE;
-int clientSocket = INVALID_HANDLE;
+int serverSocket = -1;
+int clientSocket = -1;
 
 //+------------------------------------------------------------------+
-//| Expert initialization function                                     |
+//| Expert initialization                                             |
 //+------------------------------------------------------------------+
 int OnInit()
 {
-   // Crear socket del servidor
+   // Crear socket
    serverSocket = SocketCreate();
-   if(serverSocket == INVALID_HANDLE)
+   if(serverSocket < 0)
    {
       Print("Error creando socket: ", GetLastError());
-      return(INIT_FAILED);
+      return INIT_FAILED;
    }
    
    // Bind al puerto
-   if(!SocketBind(serverSocket, "0.0.0.0", ServerPort))
+   if(!SocketBind(serverSocket, "127.0.0.1", ServerPort))
    {
-      Print("Error en bind puerto ", ServerPort, ": ", GetLastError());
+      Print("Error en bind: ", GetLastError());
       SocketClose(serverSocket);
-      return(INIT_FAILED);
+      return INIT_FAILED;
    }
    
-   // Escuchar conexiones
-   if(!SocketListen(serverSocket, MaxClients))
+   // Escuchar
+   if(!SocketListen(serverSocket, 1))
    {
       Print("Error en listen: ", GetLastError());
       SocketClose(serverSocket);
-      return(INIT_FAILED);
+      return INIT_FAILED;
    }
    
-   Print("🚀 Socket Server iniciado en puerto ", ServerPort);
+   Print("Socket Server iniciado en puerto ", ServerPort);
+   EventSetMillisecondTimer(100);
    
-   return(INIT_SUCCEEDED);
+   return INIT_SUCCEEDED;
 }
 
 //+------------------------------------------------------------------+
-//| Expert deinitialization function                                   |
+//| Expert deinitialization                                           |
 //+------------------------------------------------------------------+
 void OnDeinit(const int reason)
 {
-   if(clientSocket != INVALID_HANDLE)
-      SocketClose(clientSocket);
-   if(serverSocket != INVALID_HANDLE)
-      SocketClose(serverSocket);
+   EventKillTimer();
+   if(clientSocket >= 0) SocketClose(clientSocket);
+   if(serverSocket >= 0) SocketClose(serverSocket);
    Print("Socket Server cerrado");
 }
 
 //+------------------------------------------------------------------+
-//| Expert tick function                                               |
+//| Timer function                                                    |
 //+------------------------------------------------------------------+
-void OnTick()
+void OnTimer()
 {
-   // Intentar aceptar nueva conexión
-   if(clientSocket == INVALID_HANDLE)
+   // Aceptar nueva conexión
+   if(clientSocket < 0)
    {
       clientSocket = SocketAccept(serverSocket, 100);
-      if(clientSocket != INVALID_HANDLE)
-         Print("✅ Cliente conectado");
+      if(clientSocket >= 0)
+         Print("Cliente conectado");
    }
    
-   // Si hay cliente, leer comandos
-   if(clientSocket != INVALID_HANDLE)
+   // Leer datos del cliente
+   if(clientSocket >= 0)
    {
       uchar buffer[];
-      int bytesRead = SocketRead(clientSocket, buffer, 1024, 100);
+      int len = SocketRead(clientSocket, buffer, 1024, 100);
       
-      if(bytesRead > 0)
+      if(len > 0)
       {
-         string command = CharArrayToString(buffer, 0, bytesRead);
-         if(EnableLogging)
-            Print("📨 Recibido: ", command);
+         string command = CharArrayToString(buffer, 0, len);
+         if(EnableLogging) Print("Recibido: ", command);
          
          string response = ProcessCommand(command);
          SendResponse(response);
       }
-      else if(bytesRead == 0)
+      else if(len == 0)
       {
          // Cliente desconectado
          SocketClose(clientSocket);
-         clientSocket = INVALID_HANDLE;
+         clientSocket = -1;
          Print("Cliente desconectado");
       }
    }
 }
 
 //+------------------------------------------------------------------+
-//| Procesar comando JSON                                             |
+//| Procesar comando                                                  |
 //+------------------------------------------------------------------+
-string ProcessCommand(string jsonCommand)
+string ProcessCommand(string cmd)
 {
-   // Parsear JSON simple: {"action": "buy/sell/close", "symbol": "EURUSD", "volume": 0.1}
+   // Extraer valores del JSON simple
+   string action = GetJsonValue(cmd, "action");
+   string symbol = GetJsonValue(cmd, "symbol");
+   double volume = StringToDouble(GetJsonValue(cmd, "volume"));
    
-   string action = ExtractJsonValue(jsonCommand, "action");
-   string symbol = ExtractJsonValue(jsonCommand, "symbol");
-   double volume = StringToDouble(ExtractJsonValue(jsonCommand, "volume"));
+   if(symbol == "") symbol = Symbol();
+   if(volume <= 0) volume = 0.01;
    
-   if(action == "")
-      return "{\"status\": \"error\", \"message\": \"No action specified\"}";
+   if(action == "ping")
+      return "{\"status\":\"ok\",\"message\":\"pong\"}";
    
-   // Ejecutar acción
-   if(action == "buy")
-      return ExecuteBuy(symbol, volume);
-   else if(action == "sell")
-      return ExecuteSell(symbol, volume);
-   else if(action == "close")
-      return ClosePosition(symbol);
-   else if(action == "account")
+   if(action == "account")
       return GetAccountInfo();
-   else if(action == "positions")
+   
+   if(action == "positions")
       return GetPositions();
-   else if(action == "ping")
-      return "{\"status\": \"ok\", \"message\": \"pong\"}";
    
-   return "{\"status\": \"error\", \"message\": \"Unknown action\"}";
+   if(action == "buy")
+      return ExecuteTrade(symbol, volume, ORDER_TYPE_BUY);
+   
+   if(action == "sell")
+      return ExecuteTrade(symbol, volume, ORDER_TYPE_SELL);
+   
+   if(action == "close")
+      return ClosePos(symbol);
+   
+   return "{\"status\":\"error\",\"message\":\"Unknown action\"}";
 }
 
 //+------------------------------------------------------------------+
-//| Ejecutar compra                                                   |
+//| Ejecutar trade                                                    |
 //+------------------------------------------------------------------+
-string ExecuteBuy(string symbol, double volume)
+string ExecuteTrade(string sym, double vol, ENUM_ORDER_TYPE type)
 {
-   if(symbol == "") symbol = Symbol();
-   if(volume <= 0) volume = 0.01;
-   
-   MqlTradeRequest request = {};
-   MqlTradeResult result = {};
+   MqlTradeRequest request;
+   MqlTradeResult result;
+   ZeroMemory(request);
+   ZeroMemory(result);
    
    request.action = TRADE_ACTION_DEAL;
-   request.symbol = symbol;
-   request.volume = volume;
-   request.type = ORDER_TYPE_BUY;
-   request.price = SymbolInfoDouble(symbol, SYMBOL_ASK);
+   request.symbol = sym;
+   request.volume = vol;
+   request.type = type;
    request.deviation = 10;
    request.magic = 123456;
-   request.comment = "Python Bot";
+   request.comment = "PythonBot";
+   
+   if(type == ORDER_TYPE_BUY)
+      request.price = SymbolInfoDouble(sym, SYMBOL_ASK);
+   else
+      request.price = SymbolInfoDouble(sym, SYMBOL_BID);
    
    if(OrderSend(request, result))
    {
-      Print("✅ BUY ejecutado: ", symbol, " Vol: ", volume);
-      return StringFormat("{\"status\": \"ok\", \"order_id\": %d, \"price\": %.5f}", 
+      Print("Trade ejecutado: ", sym, " ", EnumToString(type));
+      return StringFormat("{\"status\":\"ok\",\"order_id\":%d,\"price\":%.5f}", 
                          result.order, result.price);
    }
-   else
-   {
-      Print("❌ Error BUY: ", GetLastError());
-      return StringFormat("{\"status\": \"error\", \"code\": %d}", GetLastError());
-   }
-}
-
-//+------------------------------------------------------------------+
-//| Ejecutar venta                                                    |
-//+------------------------------------------------------------------+
-string ExecuteSell(string symbol, double volume)
-{
-   if(symbol == "") symbol = Symbol();
-   if(volume <= 0) volume = 0.01;
    
-   MqlTradeRequest request = {};
-   MqlTradeResult result = {};
-   
-   request.action = TRADE_ACTION_DEAL;
-   request.symbol = symbol;
-   request.volume = volume;
-   request.type = ORDER_TYPE_SELL;
-   request.price = SymbolInfoDouble(symbol, SYMBOL_BID);
-   request.deviation = 10;
-   request.magic = 123456;
-   request.comment = "Python Bot";
-   
-   if(OrderSend(request, result))
-   {
-      Print("✅ SELL ejecutado: ", symbol, " Vol: ", volume);
-      return StringFormat("{\"status\": \"ok\", \"order_id\": %d, \"price\": %.5f}", 
-                         result.order, result.price);
-   }
-   else
-   {
-      Print("❌ Error SELL: ", GetLastError());
-      return StringFormat("{\"status\": \"error\", \"code\": %d}", GetLastError());
-   }
+   Print("Error trade: ", GetLastError());
+   return StringFormat("{\"status\":\"error\",\"code\":%d}", GetLastError());
 }
 
 //+------------------------------------------------------------------+
 //| Cerrar posición                                                   |
 //+------------------------------------------------------------------+
-string ClosePosition(string symbol)
+string ClosePos(string sym)
 {
-   if(symbol == "") symbol = Symbol();
-   
    for(int i = PositionsTotal() - 1; i >= 0; i--)
    {
-      if(PositionSelectByTicket(PositionGetTicket(i)))
+      ulong ticket = PositionGetTicket(i);
+      if(PositionSelectByTicket(ticket))
       {
-         if(PositionGetString(POSITION_SYMBOL) == symbol)
+         if(PositionGetString(POSITION_SYMBOL) == sym)
          {
-            MqlTradeRequest request = {};
-            MqlTradeResult result = {};
+            MqlTradeRequest request;
+            MqlTradeResult result;
+            ZeroMemory(request);
+            ZeroMemory(result);
             
             request.action = TRADE_ACTION_DEAL;
-            request.symbol = symbol;
+            request.symbol = sym;
             request.volume = PositionGetDouble(POSITION_VOLUME);
-            request.position = PositionGetTicket(i);
+            request.position = ticket;
+            request.deviation = 10;
             
             if(PositionGetInteger(POSITION_TYPE) == POSITION_TYPE_BUY)
             {
                request.type = ORDER_TYPE_SELL;
-               request.price = SymbolInfoDouble(symbol, SYMBOL_BID);
+               request.price = SymbolInfoDouble(sym, SYMBOL_BID);
             }
             else
             {
                request.type = ORDER_TYPE_BUY;
-               request.price = SymbolInfoDouble(symbol, SYMBOL_ASK);
+               request.price = SymbolInfoDouble(sym, SYMBOL_ASK);
             }
-            
-            request.deviation = 10;
             
             if(OrderSend(request, result))
-            {
-               Print("✅ Posición cerrada: ", symbol);
-               return "{\"status\": \"ok\", \"message\": \"Position closed\"}";
-            }
+               return "{\"status\":\"ok\",\"message\":\"Position closed\"}";
          }
       }
    }
-   
-   return "{\"status\": \"error\", \"message\": \"No position found\"}";
+   return "{\"status\":\"error\",\"message\":\"No position found\"}";
 }
 
 //+------------------------------------------------------------------+
-//| Obtener info de cuenta                                            |
+//| Info de cuenta                                                    |
 //+------------------------------------------------------------------+
 string GetAccountInfo()
 {
    return StringFormat(
-      "{\"status\": \"ok\", \"balance\": %.2f, \"equity\": %.2f, \"margin\": %.2f, \"free_margin\": %.2f}",
+      "{\"status\":\"ok\",\"balance\":%.2f,\"equity\":%.2f,\"margin\":%.2f,\"free_margin\":%.2f}",
       AccountInfoDouble(ACCOUNT_BALANCE),
       AccountInfoDouble(ACCOUNT_EQUITY),
       AccountInfoDouble(ACCOUNT_MARGIN),
@@ -259,23 +223,25 @@ string GetAccountInfo()
 }
 
 //+------------------------------------------------------------------+
-//| Obtener posiciones abiertas                                       |
+//| Posiciones abiertas                                               |
 //+------------------------------------------------------------------+
 string GetPositions()
 {
-   string result = "{\"status\": \"ok\", \"positions\": [";
+   string result = "{\"status\":\"ok\",\"positions\":[";
    
    for(int i = 0; i < PositionsTotal(); i++)
    {
-      if(PositionSelectByTicket(PositionGetTicket(i)))
+      ulong ticket = PositionGetTicket(i);
+      if(PositionSelectByTicket(ticket))
       {
          if(i > 0) result += ",";
+         string posType = PositionGetInteger(POSITION_TYPE) == POSITION_TYPE_BUY ? "buy" : "sell";
          result += StringFormat(
-            "{\"symbol\": \"%s\", \"volume\": %.2f, \"profit\": %.2f, \"type\": \"%s\"}",
+            "{\"symbol\":\"%s\",\"volume\":%.2f,\"profit\":%.2f,\"type\":\"%s\"}",
             PositionGetString(POSITION_SYMBOL),
             PositionGetDouble(POSITION_VOLUME),
             PositionGetDouble(POSITION_PROFIT),
-            PositionGetInteger(POSITION_TYPE) == POSITION_TYPE_BUY ? "buy" : "sell"
+            posType
          );
       }
    }
@@ -285,56 +251,55 @@ string GetPositions()
 }
 
 //+------------------------------------------------------------------+
-//| Extraer valor de JSON simple                                      |
+//| Extraer valor de JSON                                             |
 //+------------------------------------------------------------------+
-string ExtractJsonValue(string json, string key)
+string GetJsonValue(string json, string key)
 {
-   string searchKey = "\"" + key + "\"";
-   int keyPos = StringFind(json, searchKey);
-   if(keyPos < 0) return "";
+   string search = "\"" + key + "\"";
+   int pos = StringFind(json, search);
+   if(pos < 0) return "";
    
-   int colonPos = StringFind(json, ":", keyPos);
+   int colonPos = StringFind(json, ":", pos);
    if(colonPos < 0) return "";
    
-   int startPos = colonPos + 1;
+   int start = colonPos + 1;
    
    // Saltar espacios
-   while(StringGetCharacter(json, startPos) == ' ')
-      startPos++;
+   while(start < StringLen(json) && StringGetCharacter(json, start) == ' ')
+      start++;
    
-   // Si es string (empieza con ")
-   if(StringGetCharacter(json, startPos) == '"')
+   // Si es string
+   if(StringGetCharacter(json, start) == '"')
    {
-      startPos++;
-      int endPos = StringFind(json, "\"", startPos);
-      if(endPos < 0) return "";
-      return StringSubstr(json, startPos, endPos - startPos);
+      start++;
+      int end = StringFind(json, "\"", start);
+      if(end < 0) return "";
+      return StringSubstr(json, start, end - start);
    }
    
    // Si es número
-   int endPos = startPos;
-   while(endPos < StringLen(json))
+   int end = start;
+   while(end < StringLen(json))
    {
-      int c = StringGetCharacter(json, endPos);
-      if(c == ',' || c == '}' || c == ' ')
-         break;
-      endPos++;
+      ushort c = StringGetCharacter(json, end);
+      if(c == ',' || c == '}' || c == ' ') break;
+      end++;
    }
    
-   return StringSubstr(json, startPos, endPos - startPos);
+   return StringSubstr(json, start, end - start);
 }
 
 //+------------------------------------------------------------------+
-//| Enviar respuesta al cliente                                       |
+//| Enviar respuesta                                                  |
 //+------------------------------------------------------------------+
 void SendResponse(string response)
 {
-   if(clientSocket == INVALID_HANDLE) return;
+   if(clientSocket < 0) return;
    
    uchar buffer[];
-   StringToCharArray(response, buffer);
-   SocketSend(clientSocket, buffer, ArraySize(buffer) - 1);  // -1 para quitar null terminator
+   int len = StringToCharArray(response, buffer) - 1;
+   if(len > 0)
+      SocketSend(clientSocket, buffer, len);
    
-   if(EnableLogging)
-      Print("📤 Enviado: ", response);
+   if(EnableLogging) Print("Enviado: ", response);
 }

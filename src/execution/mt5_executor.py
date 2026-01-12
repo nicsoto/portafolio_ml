@@ -1,16 +1,16 @@
-"""MT5 Socket Executor - Cliente Python para comunicarse con MT5 vía Socket.
+"""MT5 File-based Executor - Cliente Python para comunicarse con MT5 via archivos.
 
-Envía comandos JSON a un socket server corriendo en MT5 (SocketServer.mq5).
-Funciona en Linux sin necesidad del paquete MetaTrader5.
+Escribe comandos JSON a un archivo que MT5 lee y ejecuta.
+Más compatible con Wine/Linux que sockets.
 
 Uso:
-    executor = MT5Executor(host="127.0.0.1", port=5555)
+    executor = MT5FileExecutor()
     result = executor.buy("EURUSD", volume=0.1)
     print(result)
 """
 
-import socket
 import json
+import time
 import sqlite3
 from datetime import datetime
 from dataclasses import dataclass
@@ -31,30 +31,37 @@ class MT5OrderLog:
     error: Optional[str] = None
 
 
-class MT5Executor:
+class MT5FileExecutor:
     """
-    Ejecutor de órdenes para MT5 vía Socket Bridge.
+    Ejecutor de órdenes para MT5 via comunicación por archivos.
     
-    Requiere que SocketServer.mq5 esté corriendo en MT5.
-    Comunica vía JSON sobre TCP socket.
+    Requiere que FileCommander.mq5 esté corriendo en MT5.
     """
     
     def __init__(
         self,
-        host: str = "127.0.0.1",
-        port: int = 5555,
+        mt5_files_path: str = None,
+        command_file: str = "python_commands.txt",
+        response_file: str = "mt5_response.txt",
         timeout: float = 5.0,
         db_path: str = "data/mt5_orders.db",
     ):
         """
         Args:
-            host: IP del servidor MT5 (localhost para Wine local).
-            port: Puerto del SocketServer.mq5.
-            timeout: Timeout para conexiones.
+            mt5_files_path: Ruta a la carpeta MQL5/Files de MT5.
+            command_file: Nombre del archivo de comandos.
+            response_file: Nombre del archivo de respuestas.
+            timeout: Segundos a esperar por respuesta.
             db_path: Path para SQLite de logging.
         """
-        self.host = host
-        self.port = port
+        # Detectar path de MT5 automáticamente
+        if mt5_files_path is None:
+            home = Path.home()
+            mt5_files_path = home / ".mt5" / "drive_c" / "Program Files" / "MetaTrader 5" / "MQL5" / "Files"
+        
+        self.mt5_files_path = Path(mt5_files_path)
+        self.command_file = self.mt5_files_path / command_file
+        self.response_file = self.mt5_files_path / response_file
         self.timeout = timeout
         
         # Setup database para logging
@@ -110,32 +117,29 @@ class MT5Executor:
     
     def _send_command(self, command: Dict[str, Any]) -> Dict[str, Any]:
         """
-        Envía comando JSON al servidor MT5 y recibe respuesta.
-        
-        Args:
-            command: Diccionario con el comando.
-            
-        Returns:
-            Respuesta parseada como diccionario.
+        Envía comando a MT5 escribiendo archivo y esperando respuesta.
         """
         try:
-            with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
-                sock.settimeout(self.timeout)
-                sock.connect((self.host, self.port))
-                
-                # Enviar comando como JSON
-                json_cmd = json.dumps(command)
-                sock.sendall(json_cmd.encode('utf-8'))
-                
-                # Recibir respuesta
-                response = sock.recv(4096).decode('utf-8')
-                
-                return json.loads(response)
-                
-        except socket.timeout:
-            return {"status": "error", "message": "Connection timeout"}
-        except ConnectionRefusedError:
-            return {"status": "error", "message": "Connection refused. Is MT5 running with SocketServer.mq5?"}
+            # Limpiar respuesta anterior si existe
+            if self.response_file.exists():
+                self.response_file.unlink()
+            
+            # Escribir comando
+            json_cmd = json.dumps(command)
+            self.command_file.write_text(json_cmd)
+            
+            # Esperar respuesta
+            start_time = time.time()
+            while time.time() - start_time < self.timeout:
+                if self.response_file.exists():
+                    response_text = self.response_file.read_text()
+                    if response_text:
+                        self.response_file.unlink()  # Limpiar
+                        return json.loads(response_text)
+                time.sleep(0.1)
+            
+            return {"status": "error", "message": "Timeout esperando respuesta de MT5"}
+            
         except json.JSONDecodeError as e:
             return {"status": "error", "message": f"Invalid JSON response: {e}"}
         except Exception as e:
@@ -147,12 +151,7 @@ class MT5Executor:
         return result.get("status") == "ok"
     
     def get_account(self) -> Dict[str, Any]:
-        """
-        Obtiene información de la cuenta MT5.
-        
-        Returns:
-            Dict con balance, equity, margin, free_margin.
-        """
+        """Obtiene información de la cuenta MT5."""
         result = self._send_command({"action": "account"})
         
         if result.get("status") == "ok":
@@ -160,17 +159,11 @@ class MT5Executor:
                 "balance": result.get("balance", 0),
                 "equity": result.get("equity", 0),
                 "margin": result.get("margin", 0),
-                "free_margin": result.get("free_margin", 0),
             }
         return {"error": result.get("message", "Unknown error")}
     
     def get_positions(self) -> List[Dict[str, Any]]:
-        """
-        Obtiene posiciones abiertas.
-        
-        Returns:
-            Lista de posiciones.
-        """
+        """Obtiene posiciones abiertas."""
         result = self._send_command({"action": "positions"})
         
         if result.get("status") == "ok":
@@ -178,16 +171,7 @@ class MT5Executor:
         return []
     
     def buy(self, symbol: str, volume: float = 0.01) -> MT5OrderLog:
-        """
-        Ejecuta orden de compra.
-        
-        Args:
-            symbol: Par de divisas (ej: EURUSD).
-            volume: Volumen en lotes.
-            
-        Returns:
-            MT5OrderLog con resultado.
-        """
+        """Ejecuta orden de compra."""
         timestamp = datetime.now().isoformat()
         
         result = self._send_command({
@@ -211,16 +195,7 @@ class MT5Executor:
         return order_log
     
     def sell(self, symbol: str, volume: float = 0.01) -> MT5OrderLog:
-        """
-        Ejecuta orden de venta.
-        
-        Args:
-            symbol: Par de divisas (ej: EURUSD).
-            volume: Volumen en lotes.
-            
-        Returns:
-            MT5OrderLog con resultado.
-        """
+        """Ejecuta orden de venta."""
         timestamp = datetime.now().isoformat()
         
         result = self._send_command({
@@ -244,15 +219,7 @@ class MT5Executor:
         return order_log
     
     def close_position(self, symbol: str) -> MT5OrderLog:
-        """
-        Cierra posición abierta.
-        
-        Args:
-            symbol: Par de divisas.
-            
-        Returns:
-            MT5OrderLog con resultado.
-        """
+        """Cierra posición abierta."""
         timestamp = datetime.now().isoformat()
         
         result = self._send_command({
@@ -281,48 +248,16 @@ class MT5Executor:
         side: str = "buy",
         **kwargs
     ) -> MT5OrderLog:
-        """
-        Interfaz compatible con AlpacaExecutor.
-        
-        Args:
-            symbol: Par de divisas.
-            qty: Volumen en lotes.
-            side: "buy" o "sell".
-            
-        Returns:
-            MT5OrderLog con resultado.
-        """
+        """Interfaz compatible con AlpacaExecutor."""
         if side == "buy":
             return self.buy(symbol, volume=qty)
         else:
             return self.sell(symbol, volume=qty)
     
-    def get_order_history(self, limit: int = 50) -> List[Dict[str, Any]]:
-        """
-        Obtiene historial de órdenes desde SQLite.
-        
-        Args:
-            limit: Número máximo de órdenes.
-            
-        Returns:
-            Lista de órdenes ordenadas por fecha descendente.
-        """
-        conn = sqlite3.connect(self.db_path)
-        cursor = conn.cursor()
-        
-        cursor.execute("""
-            SELECT * FROM mt5_order_logs 
-            ORDER BY created_at DESC 
-            LIMIT ?
-        """, (limit,))
-        
-        columns = [desc[0] for desc in cursor.description]
-        rows = cursor.fetchall()
-        
-        conn.close()
-        
-        return [dict(zip(columns, row)) for row in rows]
-    
     def is_connected(self) -> bool:
-        """Alias para ping()."""
+        """Verifica si FileCommander está corriendo en MT5."""
         return self.ping()
+
+
+# Alias para compatibilidad
+MT5Executor = MT5FileExecutor
