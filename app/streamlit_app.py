@@ -38,11 +38,23 @@ settings.ensure_directories()
 def main():
     apply_styles()
     
-    # Header
-    st.title("⚡ Trading Backtester Pro")
+    # Premium Header
     st.markdown("""
-    <div style='background-color: #1E1E1E; padding: 1rem; border-radius: 10px; border: 1px solid #333; margin-bottom: 2rem;'>
-        Backtesting institucional y Machine Learning avanzado.
+    <div style="text-align: center; margin-bottom: 2rem;">
+        <h1 style="font-size: 3rem; margin-bottom: 0.5rem;">⚡ Trading Backtester Pro</h1>
+        <p style="color: #94a3b8; font-size: 1.1rem; margin: 0;">
+            Backtesting institucional • Machine Learning • Análisis avanzado
+        </p>
+    </div>
+    """, unsafe_allow_html=True)
+    
+    # Stats banner
+    st.markdown("""
+    <div class="premium-card" style="display: flex; justify-content: center; gap: 2rem; flex-wrap: wrap; padding: 1rem 2rem;">
+        <div class="stat-badge">🎯 Estrategias ML</div>
+        <div class="stat-badge">📊 Walk-Forward Optimization</div>
+        <div class="stat-badge">🔬 Monte Carlo Simulation</div>
+        <div class="stat-badge">📈 Paper Trading</div>
     </div>
     """, unsafe_allow_html=True)
 
