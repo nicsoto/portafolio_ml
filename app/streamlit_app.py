@@ -393,6 +393,37 @@ def execute_backtest(
         st.code(traceback.format_exc())
         return None
 
+def display_metrics(result):
+    """Muestra métricas principales en cards."""
+    stats = result.stats
+
+    col1, col2, col3, col4, col5 = st.columns(5)
+
+    with col1:
+        value = stats.get("total_return_pct", 0)
+        st.metric(
+            "Total Return",
+            f"{value:.2f}%",
+            delta_color="normal" if value >= 0 else "inverse",
+        )
+
+    with col2:
+        st.metric("Sharpe Ratio", f"{stats.get('sharpe_ratio', 0):.2f}")
+
+    with col3:
+        value = stats.get("max_drawdown_pct", 0)
+        st.metric(
+            "Max Drawdown",
+            f"{value:.2f}%",
+            delta_color="inverse",
+        )
+
+    with col4:
+        st.metric("Win Rate", f"{stats.get('win_rate_pct', 0):.1f}%")
+
+    with col5:
+        st.metric("Trades", int(stats.get("num_trades", 0)))
+
 
 def display_results(result, prices, signals, metadata, ml_model_type, ml_threshold, timeframe, initial_capital):
     """Muestra métricas principales en cards y gráficos."""
