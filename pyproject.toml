@@ -21,6 +21,8 @@ dependencies = [
     "lightgbm>=4.0.0",
     "optuna>=3.0.0",
     "reportlab>=4.4.7",
+    "alpaca-trade-api>=3.2.0",
+    "python-dotenv>=1.2.1",
 ]
 
 [project.optional-dependencies]
