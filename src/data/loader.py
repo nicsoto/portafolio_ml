@@ -127,6 +127,9 @@ class DataLoader:
             period = f"{days}d"
             start = None
             end = None
+        elif start is None and timeframe in ["1d", "1wk", "1mo"]:
+            # Para datos diarios/semanales sin rango, usar 2 años por defecto
+            period = "2y"
 
         yf_ticker = yf.Ticker(ticker)
 
