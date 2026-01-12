@@ -197,12 +197,14 @@ class BacktestEngine:
             return pd.DataFrame()
 
     def _calculate_stats(self, portfolio, trades_df: pd.DataFrame) -> dict:
-        """Calcula métricas del backtest."""
+        """Calcula métricas completas del backtest."""
         stats = {}
 
         try:
             pf_stats = portfolio.stats()
+            equity = portfolio.value()
 
+            # Métricas básicas de vectorbt
             stats["total_return_pct"] = pf_stats.get("Total Return [%]", 0)
             stats["sharpe_ratio"] = pf_stats.get("Sharpe Ratio", 0)
             stats["max_drawdown_pct"] = pf_stats.get("Max Drawdown [%]", 0)
@@ -210,9 +212,34 @@ class BacktestEngine:
             stats["profit_factor"] = pf_stats.get("Profit Factor", 0)
             stats["num_trades"] = pf_stats.get("Total Trades", 0)
             stats["avg_trade_pct"] = pf_stats.get("Avg Trade [%]", 0)
+            
+            # Métricas adicionales para PDF y UI
+            stats["sortino_ratio"] = pf_stats.get("Sortino Ratio", 0)
+            stats["calmar_ratio"] = pf_stats.get("Calmar Ratio", 0)
+            stats["annual_return_pct"] = pf_stats.get("Annualized Return [%]", 0)
+            stats["annual_volatility_pct"] = pf_stats.get("Annualized Volatility [%]", 0)
+            stats["omega_ratio"] = pf_stats.get("Omega Ratio", 0)
+            
+            # Capital y equity
+            stats["initial_capital"] = self.initial_capital
+            stats["final_equity"] = float(equity.iloc[-1]) if len(equity) > 0 else self.initial_capital
+            
+            # Trades stats
+            if not trades_df.empty and "pnl" in trades_df.columns:
+                wins = trades_df[trades_df["pnl"] > 0]
+                losses = trades_df[trades_df["pnl"] < 0]
+                stats["avg_win"] = float(wins["pnl"].mean()) if len(wins) > 0 else 0
+                stats["avg_loss"] = float(losses["pnl"].mean()) if len(losses) > 0 else 0
+                stats["best_trade"] = float(trades_df["pnl"].max()) if len(trades_df) > 0 else 0
+                stats["worst_trade"] = float(trades_df["pnl"].min()) if len(trades_df) > 0 else 0
+            else:
+                stats["avg_win"] = 0
+                stats["avg_loss"] = 0
+                stats["best_trade"] = 0
+                stats["worst_trade"] = 0
 
-            # Convertir NaN a 0
-            stats = {k: (0 if pd.isna(v) else v) for k, v in stats.items()}
+            # Convertir NaN/inf a 0
+            stats = {k: (0 if (pd.isna(v) or np.isinf(v)) else v) for k, v in stats.items()}
 
         except Exception:
             stats = {
@@ -223,6 +250,18 @@ class BacktestEngine:
                 "profit_factor": 0,
                 "num_trades": 0,
                 "avg_trade_pct": 0,
+                "sortino_ratio": 0,
+                "calmar_ratio": 0,
+                "annual_return_pct": 0,
+                "annual_volatility_pct": 0,
+                "omega_ratio": 0,
+                "initial_capital": self.initial_capital,
+                "final_equity": self.initial_capital,
+                "avg_win": 0,
+                "avg_loss": 0,
+                "best_trade": 0,
+                "worst_trade": 0,
             }
 
         return stats
+
