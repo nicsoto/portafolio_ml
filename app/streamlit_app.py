@@ -314,8 +314,13 @@ def execute_backtest(
             
             # Preparar dataset
             # Nota: para entrenamiento usamos horizonte=1 (predicción siguiente vela)
-            # Podría ser parámetro configurable
             features, target = fe.prepare_dataset(prices, horizon=1, dropna=True)
+            
+            # Validar que hay suficientes datos
+            if len(features) < 100:
+                st.error(f"❌ Datos insuficientes para ML: solo {len(features)} filas después de limpiar NaNs. Se necesitan al menos 100.")
+                st.info("💡 Intenta con un ticker con más historial o usa timeframe diario (1d)")
+                return None
             
             # Separar train/test (simple split temporal 80/20)
             train_size = int(len(features) * 0.8)
