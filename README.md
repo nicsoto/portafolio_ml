@@ -31,7 +31,9 @@ Sistema modular de trading algorítmico con backtesting, Machine Learning y ejec
 - **Bots automatizados** que corren 24/5
 
 ### UI
+- **Dashboard Next.js** (nuevo) con diseño premium fintech
 - **Dashboard Streamlit** con gráficos interactivos
+- **API FastAPI** para integración con frontend
 - **Métricas completas**: Sharpe, Sortino, Calmar, Profit Factor
 - **Feature Importance** para modelos ML
 - **Export** a CSV/Excel/PDF
@@ -62,7 +64,14 @@ cp .env.example .env
 ### Uso Básico
 
 ```bash
-# Dashboard de backtesting
+# Dashboard Next.js (moderno)
+cd frontend && npm run dev
+# Abrir http://localhost:3000
+
+# API Backend (requerido para Next.js)
+uv run uvicorn api:app --reload --port 8000
+
+# Dashboard Streamlit (alternativo)
 uv run streamlit run app/streamlit_app.py
 
 # Correr tests
@@ -73,6 +82,9 @@ uv run python scripts/live_bot.py --ticker SPY --interval 5
 
 # Bot MT5 (Forex)
 uv run python scripts/live_bot_mt5.py --symbol EURUSD --strategy ml
+
+# Generar informe semanal
+uv run python scripts/generate_report.py --period week
 ```
 
 ---

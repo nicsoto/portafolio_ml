@@ -684,3 +684,421 @@
 2026-01-12 16:34:38,643 | INFO |    💵 Equity: $100,000.00
 2026-01-12 16:35:22,676 | INFO | ⏳ Sin señal | Entry: False | Exit: False | Pos: False
 2026-01-12 16:35:23,177 | INFO |    💵 Equity: $100,000.00
+2026-01-12 16:35:39,173 | INFO | ⏳ Sin señal | Entry: False | Exit: False | Pos: False
+2026-01-12 16:35:39,675 | INFO |    💵 Equity: $100,000.00
+2026-01-12 16:36:24,128 | INFO | ⏳ Sin señal | Entry: False | Exit: False | Pos: False
+2026-01-12 16:36:24,629 | INFO |    💵 Equity: $100,000.00
+2026-01-12 16:36:40,139 | INFO | ⏳ Sin señal | Entry: False | Exit: False | Pos: False
+2026-01-12 16:36:40,640 | INFO |    💵 Equity: $100,000.00
+2026-01-12 16:37:25,692 | INFO | ⏳ Sin señal | Entry: False | Exit: False | Pos: False
+2026-01-12 16:37:26,196 | INFO |    💵 Equity: $100,000.00
+2026-01-12 16:37:41,210 | INFO | ⏳ Sin señal | Entry: False | Exit: False | Pos: False
+2026-01-12 16:37:41,712 | INFO |    💵 Equity: $100,000.00
+2026-01-12 16:38:27,123 | INFO | ⏳ Sin señal | Entry: False | Exit: False | Pos: False
+2026-01-12 16:38:27,624 | INFO |    💵 Equity: $100,000.00
+2026-01-12 16:38:42,161 | INFO | ⏳ Sin señal | Entry: False | Exit: False | Pos: False
+2026-01-12 16:38:42,663 | INFO |    💵 Equity: $100,000.00
+2026-01-12 16:39:28,133 | INFO | ⏳ Sin señal | Entry: False | Exit: False | Pos: False
+2026-01-12 16:39:28,634 | INFO |    💵 Equity: $100,000.00
+2026-01-12 16:39:43,144 | INFO | ⏳ Sin señal | Entry: False | Exit: False | Pos: False
+2026-01-12 16:39:43,646 | INFO |    💵 Equity: $100,000.00
+2026-01-12 16:40:29,162 | INFO | ⏳ Sin señal | Entry: False | Exit: False | Pos: False
+2026-01-12 16:40:29,664 | INFO |    💵 Equity: $100,000.00
+2026-01-12 16:40:44,183 | INFO | ⏳ Sin señal | Entry: False | Exit: False | Pos: False
+2026-01-12 16:40:44,686 | INFO |    💵 Equity: $100,000.00
+2026-01-12 16:41:30,197 | INFO | ⏳ Sin señal | Entry: False | Exit: False | Pos: False
+2026-01-12 16:41:30,699 | INFO |    💵 Equity: $100,000.00
+2026-01-12 16:41:45,220 | INFO | ⏳ Sin señal | Entry: False | Exit: False | Pos: False
+2026-01-12 16:41:45,622 | INFO |    💵 Equity: $100,000.00
+2026-01-12 16:42:31,664 | INFO | ⏳ Sin señal | Entry: False | Exit: False | Pos: False
+2026-01-12 16:42:32,165 | INFO |    💵 Equity: $100,000.00
+2026-01-12 16:42:46,168 | INFO | ⏳ Sin señal | Entry: False | Exit: False | Pos: False
+2026-01-12 16:42:46,669 | INFO |    💵 Equity: $100,000.00
+2026-01-12 16:43:35,186 | INFO | ⏳ Sin señal | Entry: False | Exit: False | Pos: False
+2026-01-12 16:43:35,687 | INFO |    💵 Equity: $100,000.00
+2026-01-12 16:43:47,721 | INFO | ⏳ Sin señal | Entry: False | Exit: False | Pos: False
+2026-01-12 16:43:48,123 | INFO |    💵 Equity: $100,000.00
+2026-01-12 16:44:36,644 | INFO | ⏳ Sin señal | Entry: False | Exit: False | Pos: False
+2026-01-12 16:44:37,146 | INFO |    💵 Equity: $100,000.00
+2026-01-12 16:44:48,629 | INFO | ⏳ Sin señal | Entry: False | Exit: False | Pos: False
+2026-01-12 16:44:49,130 | INFO |    💵 Equity: $100,000.00
+2026-01-12 16:45:37,698 | INFO | ⏳ Sin señal | Entry: False | Exit: False | Pos: False
+2026-01-12 16:45:38,200 | INFO |    💵 Equity: $100,000.00
+2026-01-12 16:45:50,127 | INFO | ⏳ Sin señal | Entry: False | Exit: False | Pos: False
+2026-01-12 16:45:50,628 | INFO |    💵 Equity: $100,000.00
+2026-01-12 16:46:39,222 | INFO | ⏳ Sin señal | Entry: False | Exit: False | Pos: False
+2026-01-12 16:46:39,624 | INFO |    💵 Equity: $100,000.00
+2026-01-12 16:46:51,185 | INFO | ⏳ Sin señal | Entry: False | Exit: False | Pos: False
+2026-01-12 16:46:51,687 | INFO |    💵 Equity: $100,000.00
+2026-01-12 16:47:40,174 | INFO | ⏳ Sin señal | Entry: False | Exit: False | Pos: False
+2026-01-12 16:47:40,676 | INFO |    💵 Equity: $100,000.00
+2026-01-12 16:47:52,663 | INFO | ⏳ Sin señal | Entry: False | Exit: False | Pos: False
+2026-01-12 16:47:53,165 | INFO |    💵 Equity: $100,000.00
+2026-01-12 16:48:41,188 | INFO | ⏳ Sin señal | Entry: False | Exit: False | Pos: False
+2026-01-12 16:48:41,689 | INFO |    💵 Equity: $100,000.00
+2026-01-12 16:49:01,620 | INFO | ⏳ Sin señal | Entry: False | Exit: False | Pos: False
+2026-01-12 16:49:02,227 | INFO |    💵 Equity: $100,000.00
+2026-01-12 16:49:42,676 | INFO | ⏳ Sin señal | Entry: False | Exit: False | Pos: False
+2026-01-12 16:49:43,179 | INFO |    💵 Equity: $100,000.00
+2026-01-12 16:50:03,211 | INFO | ⏳ Sin señal | Entry: False | Exit: False | Pos: False
+2026-01-12 16:50:03,615 | INFO |    💵 Equity: $100,000.00
+2026-01-12 16:50:44,162 | INFO | ⏳ Sin señal | Entry: False | Exit: False | Pos: False
+2026-01-12 16:50:44,665 | INFO |    💵 Equity: $100,000.00
+2026-01-12 16:51:09,309 | INFO | ⏳ Sin señal | Entry: False | Exit: False | Pos: False
+2026-01-12 16:51:09,769 | INFO |    💵 Equity: $100,000.00
+2026-01-12 16:51:45,639 | INFO | ⏳ Sin señal | Entry: False | Exit: False | Pos: False
+2026-01-12 16:51:46,141 | INFO |    💵 Equity: $100,000.00
+2026-01-12 16:52:10,672 | INFO | ⏳ Sin señal | Entry: False | Exit: False | Pos: False
+2026-01-12 16:52:11,176 | INFO |    💵 Equity: $100,000.00
+2026-01-12 16:52:46,712 | INFO | ⏳ Sin señal | Entry: False | Exit: False | Pos: False
+2026-01-12 16:52:47,213 | INFO |    💵 Equity: $100,000.00
+2026-01-12 16:53:12,211 | INFO | ⏳ Sin señal | Entry: False | Exit: False | Pos: False
+2026-01-12 16:53:12,717 | INFO |    💵 Equity: $100,000.00
+2026-01-12 16:53:48,163 | INFO | ⏳ Sin señal | Entry: False | Exit: False | Pos: False
+2026-01-12 16:53:48,666 | INFO |    💵 Equity: $100,000.00
+2026-01-12 16:54:13,682 | INFO | ⏳ Sin señal | Entry: False | Exit: False | Pos: False
+2026-01-12 16:54:14,185 | INFO |    💵 Equity: $100,000.00
+2026-01-12 16:54:49,178 | INFO | ⏳ Sin señal | Entry: False | Exit: False | Pos: False
+2026-01-12 16:54:49,679 | INFO |    💵 Equity: $100,000.00
+2026-01-12 16:55:15,631 | INFO | ⏳ Sin señal | Entry: False | Exit: False | Pos: False
+2026-01-12 16:55:16,133 | INFO |    💵 Equity: $100,000.00
+2026-01-12 16:55:50,675 | INFO | ⏳ Sin señal | Entry: False | Exit: False | Pos: False
+2026-01-12 16:55:51,177 | INFO |    💵 Equity: $100,000.00
+2026-01-12 16:56:17,186 | INFO | ⏳ Sin señal | Entry: False | Exit: False | Pos: False
+2026-01-12 16:56:17,687 | INFO |    💵 Equity: $100,000.00
+2026-01-12 16:56:51,629 | INFO | ⏳ Sin señal | Entry: False | Exit: False | Pos: False
+2026-01-12 16:56:52,130 | INFO |    💵 Equity: $100,000.00
+2026-01-12 16:57:18,204 | INFO | ⏳ Sin señal | Entry: False | Exit: False | Pos: False
+2026-01-12 16:57:18,706 | INFO |    💵 Equity: $100,000.00
+2026-01-12 16:57:52,643 | INFO | ⏳ Sin señal | Entry: False | Exit: False | Pos: False
+2026-01-12 16:57:53,144 | INFO |    💵 Equity: $100,000.00
+2026-01-12 16:58:19,214 | INFO | ⏳ Sin señal | Entry: False | Exit: False | Pos: False
+2026-01-12 16:58:19,716 | INFO |    💵 Equity: $100,000.00
+2026-01-12 16:58:54,140 | INFO | ⏳ Sin señal | Entry: False | Exit: False | Pos: False
+2026-01-12 16:58:54,641 | INFO |    💵 Equity: $100,000.00
+2026-01-12 16:59:20,692 | INFO | ⏳ Sin señal | Entry: False | Exit: False | Pos: False
+2026-01-12 16:59:21,193 | INFO |    💵 Equity: $100,000.00
+2026-01-12 16:59:55,173 | INFO | ⏳ Sin señal | Entry: False | Exit: False | Pos: False
+2026-01-12 16:59:55,675 | INFO |    💵 Equity: $100,000.00
+2026-01-12 17:00:21,643 | INFO | ⏳ Sin señal | Entry: False | Exit: False | Pos: False
+2026-01-12 17:00:22,144 | INFO |    💵 Equity: $100,000.00
+2026-01-12 17:00:56,179 | INFO | ⏳ Sin señal | Entry: False | Exit: False | Pos: False
+2026-01-12 17:00:56,680 | INFO |    💵 Equity: $100,000.00
+2026-01-12 17:01:23,192 | INFO | ⏳ Sin señal | Entry: False | Exit: False | Pos: False
+2026-01-12 17:01:23,693 | INFO |    💵 Equity: $100,000.00
+2026-01-12 17:01:57,645 | INFO | ⏳ Sin señal | Entry: False | Exit: False | Pos: False
+2026-01-12 17:01:58,146 | INFO |    💵 Equity: $100,000.00
+2026-01-12 17:02:24,215 | INFO | ⏳ Sin señal | Entry: False | Exit: False | Pos: False
+2026-01-12 17:02:24,616 | INFO |    💵 Equity: $100,000.00
+2026-01-12 17:02:58,684 | INFO | ⏳ Sin señal | Entry: False | Exit: False | Pos: False
+2026-01-12 17:02:59,187 | INFO |    💵 Equity: $100,000.00
+2026-01-12 17:03:25,173 | INFO | ⏳ Sin señal | Entry: False | Exit: False | Pos: False
+2026-01-12 17:03:25,674 | INFO |    💵 Equity: $100,000.00
+2026-01-12 17:04:00,156 | INFO | ⏳ Sin señal | Entry: False | Exit: False | Pos: False
+2026-01-12 17:04:00,657 | INFO |    💵 Equity: $100,000.00
+2026-01-12 17:04:26,196 | INFO | ⏳ Sin señal | Entry: False | Exit: False | Pos: False
+2026-01-12 17:04:26,698 | INFO |    💵 Equity: $100,000.00
+2026-01-12 17:05:02,140 | INFO | ⏳ Sin señal | Entry: False | Exit: False | Pos: False
+2026-01-12 17:05:02,644 | INFO |    💵 Equity: $100,000.00
+2026-01-12 17:05:27,653 | INFO | ⏳ Sin señal | Entry: False | Exit: False | Pos: False
+2026-01-12 17:05:28,154 | INFO |    💵 Equity: $100,000.00
+2026-01-12 17:06:03,659 | INFO | ⏳ Sin señal | Entry: False | Exit: False | Pos: False
+2026-01-12 17:06:04,160 | INFO |    💵 Equity: $100,000.00
+2026-01-12 17:06:29,192 | INFO | ⏳ Sin señal | Entry: False | Exit: False | Pos: False
+2026-01-12 17:06:29,693 | INFO |    💵 Equity: $100,000.00
+2026-01-12 17:07:05,117 | INFO | ⏳ Sin señal | Entry: False | Exit: False | Pos: False
+2026-01-12 17:07:05,718 | INFO |    💵 Equity: $100,000.00
+2026-01-12 17:07:30,214 | INFO | ⏳ Sin señal | Entry: False | Exit: False | Pos: False
+2026-01-12 17:07:30,715 | INFO |    💵 Equity: $100,000.00
+2026-01-12 17:08:06,170 | INFO | ⏳ Sin señal | Entry: False | Exit: False | Pos: False
+2026-01-12 17:08:06,671 | INFO |    💵 Equity: $100,000.00
+2026-01-12 17:08:31,673 | INFO | ⏳ Sin señal | Entry: False | Exit: False | Pos: False
+2026-01-12 17:08:32,174 | INFO |    💵 Equity: $100,000.00
+2026-01-12 17:09:08,177 | INFO | ⏳ Sin señal | Entry: False | Exit: False | Pos: False
+2026-01-12 17:09:08,678 | INFO |    💵 Equity: $100,000.00
+2026-01-12 17:09:32,695 | INFO | ⏳ Sin señal | Entry: False | Exit: False | Pos: False
+2026-01-12 17:09:33,197 | INFO |    💵 Equity: $100,000.00
+2026-01-12 17:10:09,196 | INFO | ⏳ Sin señal | Entry: False | Exit: False | Pos: False
+2026-01-12 17:10:09,697 | INFO |    💵 Equity: $100,000.00
+2026-01-12 17:10:34,156 | INFO | ⏳ Sin señal | Entry: False | Exit: False | Pos: False
+2026-01-12 17:10:34,657 | INFO |    💵 Equity: $100,000.00
+2026-01-12 17:11:10,213 | INFO | ⏳ Sin señal | Entry: False | Exit: False | Pos: False
+2026-01-12 17:11:10,714 | INFO |    💵 Equity: $100,000.00
+2026-01-12 17:11:35,176 | INFO | ⏳ Sin señal | Entry: False | Exit: False | Pos: False
+2026-01-12 17:11:35,677 | INFO |    💵 Equity: $100,000.00
+2026-01-12 17:12:11,634 | INFO | ⏳ Sin señal | Entry: False | Exit: False | Pos: False
+2026-01-12 17:12:12,135 | INFO |    💵 Equity: $100,000.00
+2026-01-12 17:12:36,628 | INFO | ⏳ Sin señal | Entry: False | Exit: False | Pos: False
+2026-01-12 17:12:37,129 | INFO |    💵 Equity: $100,000.00
+2026-01-12 17:13:13,132 | INFO | ⏳ Sin señal | Entry: False | Exit: False | Pos: False
+2026-01-12 17:13:13,633 | INFO |    💵 Equity: $100,000.00
+2026-01-12 17:13:37,656 | INFO | ⏳ Sin señal | Entry: False | Exit: False | Pos: False
+2026-01-12 17:13:38,157 | INFO |    💵 Equity: $100,000.00
+2026-01-12 17:14:14,627 | INFO | ⏳ Sin señal | Entry: False | Exit: False | Pos: False
+2026-01-12 17:14:15,129 | INFO |    💵 Equity: $100,000.00
+2026-01-12 17:14:39,218 | INFO | ⏳ Sin señal | Entry: False | Exit: False | Pos: False
+2026-01-12 17:14:39,719 | INFO |    💵 Equity: $100,000.00
+2026-01-12 17:15:15,641 | INFO | ⏳ Sin señal | Entry: False | Exit: False | Pos: False
+2026-01-12 17:15:16,142 | INFO |    💵 Equity: $100,000.00
+2026-01-12 17:15:40,717 | INFO | ⏳ Sin señal | Entry: False | Exit: False | Pos: False
+2026-01-12 17:15:41,218 | INFO |    💵 Equity: $100,000.00
+2026-01-12 17:16:19,153 | INFO | ⏳ Sin señal | Entry: False | Exit: False | Pos: False
+2026-01-12 17:16:19,654 | INFO |    💵 Equity: $100,000.00
+2026-01-12 17:16:42,167 | INFO | ⏳ Sin señal | Entry: False | Exit: False | Pos: False
+2026-01-12 17:16:42,670 | INFO |    💵 Equity: $100,000.00
+2026-01-12 17:17:20,170 | INFO | ⏳ Sin señal | Entry: False | Exit: False | Pos: False
+2026-01-12 17:17:20,672 | INFO |    💵 Equity: $100,000.00
+2026-01-12 17:17:43,628 | INFO | ⏳ Sin señal | Entry: False | Exit: False | Pos: False
+2026-01-12 17:17:44,129 | INFO |    💵 Equity: $100,000.00
+2026-01-12 17:18:21,181 | INFO | ⏳ Sin señal | Entry: False | Exit: False | Pos: False
+2026-01-12 17:18:21,685 | INFO |    💵 Equity: $100,000.00
+2026-01-12 17:18:45,178 | INFO | ⏳ Sin señal | Entry: False | Exit: False | Pos: False
+2026-01-12 17:18:45,680 | INFO |    💵 Equity: $100,000.00
+2026-01-12 17:19:22,632 | INFO | ⏳ Sin señal | Entry: False | Exit: False | Pos: False
+2026-01-12 17:19:23,134 | INFO |    💵 Equity: $100,000.00
+2026-01-12 17:19:46,131 | INFO | ⏳ Sin señal | Entry: False | Exit: False | Pos: False
+2026-01-12 17:19:46,632 | INFO |    💵 Equity: $100,000.00
+2026-01-12 17:20:23,679 | INFO | ⏳ Sin señal | Entry: False | Exit: False | Pos: False
+2026-01-12 17:20:24,182 | INFO |    💵 Equity: $100,000.00
+2026-01-12 17:20:47,628 | INFO | ⏳ Sin señal | Entry: False | Exit: False | Pos: False
+2026-01-12 17:20:48,129 | INFO |    💵 Equity: $100,000.00
+2026-01-12 17:21:24,637 | INFO | ⏳ Sin señal | Entry: False | Exit: False | Pos: False
+2026-01-12 17:21:25,139 | INFO |    💵 Equity: $100,000.00
+2026-01-12 17:21:50,178 | INFO | ⏳ Sin señal | Entry: False | Exit: False | Pos: False
+2026-01-12 17:21:50,679 | INFO |    💵 Equity: $100,000.00
+2026-01-12 17:22:27,179 | INFO | ⏳ Sin señal | Entry: False | Exit: False | Pos: False
+2026-01-12 17:22:27,680 | INFO |    💵 Equity: $100,000.00
+2026-01-12 17:22:51,660 | INFO | ⏳ Sin señal | Entry: False | Exit: False | Pos: False
+2026-01-12 17:22:52,162 | INFO |    💵 Equity: $100,000.00
+2026-01-12 17:23:28,180 | INFO | ⏳ Sin señal | Entry: False | Exit: False | Pos: False
+2026-01-12 17:23:28,682 | INFO |    💵 Equity: $100,000.00
+2026-01-12 17:23:52,676 | INFO | ⏳ Sin señal | Entry: False | Exit: False | Pos: False
+2026-01-12 17:23:53,179 | INFO |    💵 Equity: $100,000.00
+2026-01-12 17:24:29,197 | INFO | ⏳ Sin señal | Entry: False | Exit: False | Pos: False
+2026-01-12 17:24:29,698 | INFO |    💵 Equity: $100,000.00
+2026-01-12 17:24:53,689 | INFO | ⏳ Sin señal | Entry: False | Exit: False | Pos: False
+2026-01-12 17:24:54,191 | INFO |    💵 Equity: $100,000.00
+2026-01-12 17:25:30,674 | INFO | ⏳ Sin señal | Entry: False | Exit: False | Pos: False
+2026-01-12 17:25:31,175 | INFO |    💵 Equity: $100,000.00
+2026-01-12 17:25:54,716 | INFO | ⏳ Sin señal | Entry: False | Exit: False | Pos: False
+2026-01-12 17:25:55,117 | INFO |    💵 Equity: $100,000.00
+2026-01-12 17:26:31,700 | INFO | ⏳ Sin señal | Entry: False | Exit: False | Pos: False
+2026-01-12 17:26:32,202 | INFO |    💵 Equity: $100,000.00
+2026-01-12 17:26:55,650 | INFO | ⏳ Sin señal | Entry: False | Exit: False | Pos: False
+2026-01-12 17:26:56,151 | INFO |    💵 Equity: $100,000.00
+2026-01-12 17:27:33,702 | INFO | ⏳ Sin señal | Entry: False | Exit: False | Pos: False
+2026-01-12 17:27:34,204 | INFO |    💵 Equity: $100,000.00
+2026-01-12 17:27:56,674 | INFO | ⏳ Sin señal | Entry: False | Exit: False | Pos: False
+2026-01-12 17:27:57,175 | INFO |    💵 Equity: $100,000.00
+2026-01-12 17:28:35,126 | INFO | ⏳ Sin señal | Entry: False | Exit: False | Pos: False
+2026-01-12 17:28:35,628 | INFO |    💵 Equity: $100,000.00
+2026-01-12 17:28:57,681 | INFO | ⏳ Sin señal | Entry: False | Exit: False | Pos: False
+2026-01-12 17:28:58,182 | INFO |    💵 Equity: $100,000.00
+2026-01-12 17:29:36,125 | INFO | ⏳ Sin señal | Entry: False | Exit: False | Pos: False
+2026-01-12 17:29:36,626 | INFO |    💵 Equity: $100,000.00
+2026-01-12 17:29:59,158 | INFO | ⏳ Sin señal | Entry: False | Exit: False | Pos: False
+2026-01-12 17:29:59,659 | INFO |    💵 Equity: $100,000.00
+2026-01-12 17:30:37,153 | INFO | ⏳ Sin señal | Entry: False | Exit: False | Pos: False
+2026-01-12 17:30:37,655 | INFO |    💵 Equity: $100,000.00
+2026-01-12 17:31:00,204 | INFO | ⏳ Sin señal | Entry: False | Exit: False | Pos: False
+2026-01-12 17:31:00,706 | INFO |    💵 Equity: $100,000.00
+2026-01-12 17:31:38,678 | INFO | ⏳ Sin señal | Entry: False | Exit: False | Pos: False
+2026-01-12 17:31:39,180 | INFO |    💵 Equity: $100,000.00
+2026-01-12 17:32:01,630 | INFO | ⏳ Sin señal | Entry: False | Exit: False | Pos: False
+2026-01-12 17:32:02,131 | INFO |    💵 Equity: $100,000.00
+2026-01-12 17:32:39,647 | INFO | ⏳ Sin señal | Entry: False | Exit: False | Pos: False
+2026-01-12 17:32:40,149 | INFO |    💵 Equity: $100,000.00
+2026-01-12 17:33:02,644 | INFO | ⏳ Sin señal | Entry: False | Exit: False | Pos: False
+2026-01-12 17:33:03,145 | INFO |    💵 Equity: $100,000.00
+2026-01-12 17:33:40,696 | INFO | ⏳ Sin señal | Entry: False | Exit: False | Pos: False
+2026-01-12 17:33:41,197 | INFO |    💵 Equity: $100,000.00
+2026-01-12 17:34:03,676 | INFO | ⏳ Sin señal | Entry: False | Exit: False | Pos: False
+2026-01-12 17:34:04,179 | INFO |    💵 Equity: $100,000.00
+2026-01-12 17:34:41,707 | INFO | ⏳ Sin señal | Entry: False | Exit: False | Pos: False
+2026-01-12 17:34:42,209 | INFO |    💵 Equity: $100,000.00
+2026-01-12 17:35:04,621 | INFO | ⏳ Sin señal | Entry: False | Exit: False | Pos: False
+2026-01-12 17:35:05,122 | INFO |    💵 Equity: $100,000.00
+2026-01-12 17:35:43,151 | INFO | ⏳ Sin señal | Entry: False | Exit: False | Pos: False
+2026-01-12 17:35:43,652 | INFO |    💵 Equity: $100,000.00
+2026-01-12 17:36:05,635 | INFO | ⏳ Sin señal | Entry: False | Exit: False | Pos: False
+2026-01-12 17:36:06,136 | INFO |    💵 Equity: $100,000.00
+2026-01-12 17:36:44,191 | INFO | ⏳ Sin señal | Entry: False | Exit: False | Pos: False
+2026-01-12 17:36:44,693 | INFO |    💵 Equity: $100,000.00
+2026-01-12 17:37:06,636 | INFO | ⏳ Sin señal | Entry: False | Exit: False | Pos: False
+2026-01-12 17:37:07,137 | INFO |    💵 Equity: $100,000.00
+2026-01-12 17:37:45,201 | INFO | ⏳ Sin señal | Entry: False | Exit: False | Pos: False
+2026-01-12 17:37:45,703 | INFO |    💵 Equity: $100,000.00
+2026-01-12 17:38:07,644 | INFO | ⏳ Sin señal | Entry: False | Exit: False | Pos: False
+2026-01-12 17:38:08,145 | INFO |    💵 Equity: $100,000.00
+2026-01-12 17:38:46,719 | INFO | ⏳ Sin señal | Entry: False | Exit: False | Pos: False
+2026-01-12 17:38:47,220 | INFO |    💵 Equity: $100,000.00
+2026-01-12 17:39:08,650 | INFO | ⏳ Sin señal | Entry: False | Exit: False | Pos: False
+2026-01-12 17:39:09,151 | INFO |    💵 Equity: $100,000.00
+2026-01-12 17:39:48,141 | INFO | ⏳ Sin señal | Entry: False | Exit: False | Pos: False
+2026-01-12 17:39:48,643 | INFO |    💵 Equity: $100,000.00
+2026-01-12 17:40:09,673 | INFO | ⏳ Sin señal | Entry: False | Exit: False | Pos: False
+2026-01-12 17:40:10,174 | INFO |    💵 Equity: $100,000.00
+2026-01-12 17:40:49,158 | INFO | ⏳ Sin señal | Entry: False | Exit: False | Pos: False
+2026-01-12 17:40:49,660 | INFO |    💵 Equity: $100,000.00
+2026-01-12 17:41:10,629 | INFO | ⏳ Sin señal | Entry: False | Exit: False | Pos: False
+2026-01-12 17:41:11,130 | INFO |    💵 Equity: $100,000.00
+2026-01-12 17:41:50,637 | INFO | ⏳ Sin señal | Entry: False | Exit: False | Pos: False
+2026-01-12 17:41:51,138 | INFO |    💵 Equity: $100,000.00
+2026-01-12 17:42:11,679 | INFO | ⏳ Sin señal | Entry: False | Exit: False | Pos: False
+2026-01-12 17:42:12,181 | INFO |    💵 Equity: $100,000.00
+2026-01-12 17:42:51,700 | INFO | ⏳ Sin señal | Entry: False | Exit: False | Pos: False
+2026-01-12 17:42:52,201 | INFO |    💵 Equity: $100,000.00
+2026-01-12 17:43:13,214 | INFO | ⏳ Sin señal | Entry: False | Exit: False | Pos: False
+2026-01-12 17:43:13,615 | INFO |    💵 Equity: $100,000.00
+2026-01-12 17:43:52,712 | INFO | ⏳ Sin señal | Entry: False | Exit: False | Pos: False
+2026-01-12 17:43:53,214 | INFO |    💵 Equity: $100,000.00
+2026-01-12 17:44:14,119 | INFO | ⏳ Sin señal | Entry: False | Exit: False | Pos: False
+2026-01-12 17:44:14,721 | INFO |    💵 Equity: $100,000.00
+2026-01-12 17:44:54,149 | INFO | ⏳ Sin señal | Entry: False | Exit: False | Pos: False
+2026-01-12 17:44:54,650 | INFO |    💵 Equity: $100,000.00
+2026-01-12 17:45:15,174 | INFO | ⏳ Sin señal | Entry: False | Exit: False | Pos: False
+2026-01-12 17:45:15,677 | INFO |    💵 Equity: $100,000.00
+2026-01-12 17:45:55,181 | INFO | ⏳ Sin señal | Entry: False | Exit: False | Pos: False
+2026-01-12 17:45:55,683 | INFO |    💵 Equity: $100,000.00
+2026-01-12 17:46:16,186 | INFO | ⏳ Sin señal | Entry: False | Exit: False | Pos: False
+2026-01-12 17:46:16,688 | INFO |    💵 Equity: $100,000.00
+2026-01-12 17:46:56,196 | INFO | ⏳ Sin señal | Entry: False | Exit: False | Pos: False
+2026-01-12 17:46:56,699 | INFO |    💵 Equity: $100,000.00
+2026-01-12 17:47:17,711 | INFO | ⏳ Sin señal | Entry: False | Exit: False | Pos: False
+2026-01-12 17:47:18,113 | INFO |    💵 Equity: $100,000.00
+2026-01-12 17:47:57,154 | INFO | ⏳ Sin señal | Entry: False | Exit: False | Pos: False
+2026-01-12 17:47:57,656 | INFO |    💵 Equity: $100,000.00
+2026-01-12 17:48:18,641 | INFO | ⏳ Sin señal | Entry: False | Exit: False | Pos: False
+2026-01-12 17:48:19,142 | INFO |    💵 Equity: $100,000.00
+2026-01-12 17:48:58,170 | INFO | ⏳ Sin señal | Entry: False | Exit: False | Pos: False
+2026-01-12 17:48:58,671 | INFO |    💵 Equity: $100,000.00
+2026-01-12 17:49:19,661 | INFO | ⏳ Sin señal | Entry: False | Exit: False | Pos: False
+2026-01-12 17:49:20,162 | INFO |    💵 Equity: $100,000.00
+2026-01-12 17:49:59,190 | INFO | ⏳ Sin señal | Entry: False | Exit: False | Pos: False
+2026-01-12 17:49:59,692 | INFO |    💵 Equity: $100,000.00
+2026-01-12 17:50:20,616 | INFO | ⏳ Sin señal | Entry: False | Exit: False | Pos: False
+2026-01-12 17:50:21,218 | INFO |    💵 Equity: $100,000.00
+2026-01-12 17:51:00,222 | INFO | ⏳ Sin señal | Entry: False | Exit: False | Pos: False
+2026-01-12 17:51:00,623 | INFO |    💵 Equity: $100,000.00
+2026-01-12 17:51:22,135 | INFO | ⏳ Sin señal | Entry: False | Exit: False | Pos: False
+2026-01-12 17:51:22,637 | INFO |    💵 Equity: $100,000.00
+2026-01-12 17:52:01,206 | INFO | ⏳ Sin señal | Entry: False | Exit: False | Pos: False
+2026-01-12 17:52:01,708 | INFO |    💵 Equity: $100,000.00
+2026-01-12 17:52:23,186 | INFO | ⏳ Sin señal | Entry: False | Exit: False | Pos: False
+2026-01-12 17:52:23,688 | INFO |    💵 Equity: $100,000.00
+2026-01-12 17:53:02,173 | INFO | ⏳ Sin señal | Entry: False | Exit: False | Pos: False
+2026-01-12 17:53:02,675 | INFO |    💵 Equity: $100,000.00
+2026-01-12 17:53:28,120 | INFO | ⏳ Sin señal | Entry: False | Exit: False | Pos: False
+2026-01-12 17:53:28,622 | INFO |    💵 Equity: $100,000.00
+2026-01-12 17:54:03,140 | INFO | ⏳ Sin señal | Entry: False | Exit: False | Pos: False
+2026-01-12 17:54:03,641 | INFO |    💵 Equity: $100,000.00
+2026-01-12 17:54:38,686 | ERROR | $EURUSD=X: possibly delisted; no price data found  (period=60d)
+2026-01-12 17:54:38,687 | WARNING | Sin datos suficientes para EURUSD
+2026-01-12 17:55:11,637 | INFO | ⏳ Sin señal | Entry: False | Exit: False | Pos: False
+2026-01-12 17:55:12,138 | INFO |    💵 Equity: $100,000.00
+2026-01-12 17:55:39,152 | INFO | ⏳ Sin señal | Entry: False | Exit: False | Pos: False
+2026-01-12 17:55:39,654 | INFO |    💵 Equity: $100,000.00
+2026-01-12 17:56:12,656 | INFO | ⏳ Sin señal | Entry: False | Exit: False | Pos: False
+2026-01-12 17:56:13,158 | INFO |    💵 Equity: $100,000.00
+2026-01-12 17:56:40,157 | INFO | ⏳ Sin señal | Entry: False | Exit: False | Pos: False
+2026-01-12 17:56:40,658 | INFO |    💵 Equity: $100,000.00
+2026-01-12 17:57:14,133 | INFO | ⏳ Sin señal | Entry: False | Exit: False | Pos: False
+2026-01-12 17:57:14,634 | INFO |    💵 Equity: $100,000.00
+2026-01-12 17:57:41,180 | INFO | ⏳ Sin señal | Entry: False | Exit: False | Pos: False
+2026-01-12 17:57:41,683 | INFO |    💵 Equity: $100,000.00
+2026-01-12 17:58:15,159 | INFO | ⏳ Sin señal | Entry: False | Exit: False | Pos: False
+2026-01-12 17:58:15,660 | INFO |    💵 Equity: $100,000.00
+2026-01-12 17:58:42,191 | INFO | ⏳ Sin señal | Entry: False | Exit: False | Pos: False
+2026-01-12 17:58:42,693 | INFO |    💵 Equity: $100,000.00
+2026-01-12 17:59:16,136 | INFO | ⏳ Sin señal | Entry: False | Exit: False | Pos: False
+2026-01-12 17:59:16,637 | INFO |    💵 Equity: $100,000.00
+2026-01-12 17:59:43,645 | INFO | ⏳ Sin señal | Entry: False | Exit: False | Pos: False
+2026-01-12 17:59:44,146 | INFO |    💵 Equity: $100,000.00
+2026-01-12 18:00:17,192 | INFO | ⏳ Sin señal | Entry: False | Exit: False | Pos: False
+2026-01-12 18:00:17,693 | INFO |    💵 Equity: $100,000.00
+2026-01-12 18:00:44,707 | INFO | ⏳ Sin señal | Entry: False | Exit: False | Pos: False
+2026-01-12 18:00:45,208 | INFO |    💵 Equity: $100,000.00
+2026-01-12 18:01:18,205 | INFO | ⏳ Sin señal | Entry: False | Exit: False | Pos: False
+2026-01-12 18:01:18,707 | INFO |    💵 Equity: $100,000.00
+2026-01-12 18:01:46,135 | INFO | ⏳ Sin señal | Entry: False | Exit: False | Pos: False
+2026-01-12 18:01:46,636 | INFO |    💵 Equity: $100,000.00
+2026-01-12 18:02:19,649 | INFO | ⏳ Sin señal | Entry: False | Exit: False | Pos: False
+2026-01-12 18:02:20,151 | INFO |    💵 Equity: $100,000.00
+2026-01-12 18:02:52,711 | INFO | ⏳ Sin señal | Entry: False | Exit: False | Pos: False
+2026-01-12 18:02:53,214 | INFO |    💵 Equity: $100,000.00
+2026-01-12 18:03:21,156 | INFO | ⏳ Sin señal | Entry: False | Exit: False | Pos: False
+2026-01-12 18:03:21,658 | INFO |    💵 Equity: $100,000.00
+2026-01-12 18:03:53,660 | INFO | ⏳ Sin señal | Entry: False | Exit: False | Pos: False
+2026-01-12 18:03:54,161 | INFO |    💵 Equity: $100,000.00
+2026-01-12 18:04:23,165 | INFO | ⏳ Sin señal | Entry: False | Exit: False | Pos: False
+2026-01-12 18:04:23,666 | INFO |    💵 Equity: $100,000.00
+2026-01-12 18:04:54,676 | INFO | ⏳ Sin señal | Entry: False | Exit: False | Pos: False
+2026-01-12 18:04:55,177 | INFO |    💵 Equity: $100,000.00
+2026-01-12 18:05:24,717 | INFO | ⏳ Sin señal | Entry: False | Exit: False | Pos: False
+2026-01-12 18:05:25,218 | INFO |    💵 Equity: $100,000.00
+2026-01-12 18:05:55,692 | INFO | ⏳ Sin señal | Entry: False | Exit: False | Pos: False
+2026-01-12 18:05:56,194 | INFO |    💵 Equity: $100,000.00
+2026-01-12 18:06:27,164 | INFO | ⏳ Sin señal | Entry: False | Exit: False | Pos: False
+2026-01-12 18:06:27,665 | INFO |    💵 Equity: $100,000.00
+2026-01-12 18:06:56,709 | INFO | ⏳ Sin señal | Entry: False | Exit: False | Pos: False
+2026-01-12 18:06:57,211 | INFO |    💵 Equity: $100,000.00
+2026-01-12 18:07:28,168 | INFO | ⏳ Sin señal | Entry: False | Exit: False | Pos: False
+2026-01-12 18:07:28,670 | INFO |    💵 Equity: $100,000.00
+2026-01-12 18:07:57,660 | INFO | ⏳ Sin señal | Entry: False | Exit: False | Pos: False
+2026-01-12 18:07:58,161 | INFO |    💵 Equity: $100,000.00
+2026-01-12 18:08:29,623 | INFO | ⏳ Sin señal | Entry: False | Exit: False | Pos: False
+2026-01-12 18:08:30,124 | INFO |    💵 Equity: $100,000.00
+2026-01-12 18:08:59,155 | INFO | ⏳ Sin señal | Entry: False | Exit: False | Pos: False
+2026-01-12 18:08:59,657 | INFO |    💵 Equity: $100,000.00
+2026-01-12 18:09:31,142 | INFO | ⏳ Sin señal | Entry: False | Exit: False | Pos: False
+2026-01-12 18:09:31,643 | INFO |    💵 Equity: $100,000.00
+2026-01-12 18:10:00,169 | INFO | ⏳ Sin señal | Entry: False | Exit: False | Pos: False
+2026-01-12 18:10:00,671 | INFO |    💵 Equity: $100,000.00
+2026-01-12 18:10:32,180 | INFO | ⏳ Sin señal | Entry: False | Exit: False | Pos: False
+2026-01-12 18:10:32,681 | INFO |    💵 Equity: $100,000.00
+2026-01-12 18:11:01,185 | INFO | ⏳ Sin señal | Entry: False | Exit: False | Pos: False
+2026-01-12 18:11:01,686 | INFO |    💵 Equity: $100,000.00
+2026-01-12 18:11:33,124 | INFO | ⏳ Sin señal | Entry: False | Exit: False | Pos: False
+2026-01-12 18:11:33,625 | INFO |    💵 Equity: $100,000.00
+2026-01-12 18:12:02,205 | INFO | ⏳ Sin señal | Entry: False | Exit: False | Pos: False
+2026-01-12 18:12:02,706 | INFO |    💵 Equity: $100,000.00
+2026-01-12 18:12:34,135 | INFO | ⏳ Sin señal | Entry: False | Exit: False | Pos: False
+2026-01-12 18:12:34,636 | INFO |    💵 Equity: $100,000.00
+2026-01-12 18:13:03,626 | INFO | ⏳ Sin señal | Entry: False | Exit: False | Pos: False
+2026-01-12 18:13:04,127 | INFO |    💵 Equity: $100,000.00
+2026-01-12 18:13:35,211 | INFO | ⏳ Sin señal | Entry: False | Exit: False | Pos: False
+2026-01-12 18:13:35,612 | INFO |    💵 Equity: $100,000.00
+2026-01-12 18:14:05,145 | INFO | ⏳ Sin señal | Entry: False | Exit: False | Pos: False
+2026-01-12 18:14:05,646 | INFO |    💵 Equity: $100,000.00
+2026-01-12 18:14:36,198 | INFO | ⏳ Sin señal | Entry: False | Exit: False | Pos: False
+2026-01-12 18:14:36,699 | INFO |    💵 Equity: $100,000.00
+2026-01-12 18:15:06,167 | INFO | ⏳ Sin señal | Entry: False | Exit: False | Pos: False
+2026-01-12 18:15:06,668 | INFO |    💵 Equity: $100,000.00
+2026-01-12 18:15:37,154 | INFO | ⏳ Sin señal | Entry: False | Exit: False | Pos: False
+2026-01-12 18:15:37,656 | INFO |    💵 Equity: $100,000.00
+2026-01-12 18:16:07,133 | INFO | ⏳ Sin señal | Entry: False | Exit: False | Pos: False
+2026-01-12 18:16:07,634 | INFO |    💵 Equity: $100,000.00
+2026-01-12 18:16:38,150 | INFO | ⏳ Sin señal | Entry: False | Exit: False | Pos: False
+2026-01-12 18:16:38,652 | INFO |    💵 Equity: $100,000.00
+2026-01-12 18:17:08,179 | INFO | ⏳ Sin señal | Entry: False | Exit: False | Pos: False
+2026-01-12 18:17:08,680 | INFO |    💵 Equity: $100,000.00
+2026-01-12 18:17:39,192 | INFO | ⏳ Sin señal | Entry: False | Exit: False | Pos: False
+2026-01-12 18:17:39,693 | INFO |    💵 Equity: $100,000.00
+2026-01-12 18:18:09,188 | INFO | ⏳ Sin señal | Entry: False | Exit: False | Pos: False
+2026-01-12 18:18:09,691 | INFO |    💵 Equity: $100,000.00
+2026-01-12 18:18:40,672 | INFO | ⏳ Sin señal | Entry: False | Exit: False | Pos: False
+2026-01-12 18:18:41,173 | INFO |    💵 Equity: $100,000.00
+2026-01-12 18:19:10,207 | INFO | ⏳ Sin señal | Entry: False | Exit: False | Pos: False
+2026-01-12 18:19:10,709 | INFO |    💵 Equity: $100,000.00
+2026-01-12 18:19:41,685 | INFO | ⏳ Sin señal | Entry: False | Exit: False | Pos: False
+2026-01-12 18:19:42,186 | INFO |    💵 Equity: $100,000.00
+2026-01-12 18:20:11,665 | INFO | ⏳ Sin señal | Entry: False | Exit: False | Pos: False
+2026-01-12 18:20:12,166 | INFO |    💵 Equity: $100,000.00
+2026-01-12 18:20:42,645 | INFO | ⏳ Sin señal | Entry: False | Exit: False | Pos: False
+2026-01-12 18:20:43,147 | INFO |    💵 Equity: $100,000.00
+2026-01-12 18:21:12,675 | INFO | ⏳ Sin señal | Entry: False | Exit: False | Pos: False
+2026-01-12 18:21:13,177 | INFO |    💵 Equity: $100,000.00
+2026-01-12 18:21:43,660 | INFO | ⏳ Sin señal | Entry: False | Exit: False | Pos: False
+2026-01-12 18:21:44,161 | INFO |    💵 Equity: $100,000.00
+2026-01-12 18:22:13,646 | INFO | ⏳ Sin señal | Entry: False | Exit: False | Pos: False
+2026-01-12 18:22:14,148 | INFO |    💵 Equity: $100,000.00

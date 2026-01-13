@@ -23,6 +23,8 @@ dependencies = [
     "reportlab>=4.4.7",
     "alpaca-trade-api>=3.2.0",
     "python-dotenv>=1.2.1",
+    "fastapi>=0.128.0",
+    "uvicorn>=0.40.0",
 ]
 
 [project.optional-dependencies]
