@@ -25,6 +25,7 @@ dependencies = [
     "python-dotenv>=1.2.1",
     "fastapi>=0.128.0",
     "uvicorn>=0.40.0",
+    "numerapi>=2.22.0",
 ]
 
 [project.optional-dependencies]

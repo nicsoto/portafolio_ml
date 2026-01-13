@@ -1413,6 +1413,23 @@ wheels = [
 ]
 
 [[package]]
+name = "numerapi"
+version = "2.22.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "click" },
+    { name = "pandas" },
+    { name = "python-dateutil" },
+    { name = "pytz" },
+    { name = "requests" },
+    { name = "tqdm" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/df/15/cc6566eb2e824df89c6edd474849d6186ad52cb9a398b028a28a7ad5fbf0/numerapi-2.22.0.tar.gz", hash = "sha256:0ee4b499505646b2ab8f2a6090fab59492adf9b5e6c8421237f07c0dce93624f", size = 28866, upload-time = "2026-01-05T19:54:05.406Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/57/e0/7ab164986052c66d4f757df5980c10ee54975b0957d66d523419332adb34/numerapi-2.22.0-py3-none-any.whl", hash = "sha256:439b696f0b15e587cc254289eb517abf622a087a978d605aa6c365e538eb2108", size = 27021, upload-time = "2026-01-05T19:54:04.3Z" },
+]
+
+[[package]]
 name = "numpy"
 version = "2.2.6"
 source = { registry = "https://pypi.org/simple" }
@@ -1698,6 +1715,7 @@ dependencies = [
     { name = "alpaca-trade-api" },
     { name = "fastapi" },
     { name = "lightgbm" },
+    { name = "numerapi" },
     { name = "numpy" },
     { name = "openpyxl" },
     { name = "optuna" },
@@ -1729,6 +1747,7 @@ requires-dist = [
     { name = "alpaca-trade-api", specifier = ">=3.2.0" },
     { name = "fastapi", specifier = ">=0.128.0" },
     { name = "lightgbm", specifier = ">=4.0.0" },
+    { name = "numerapi", specifier = ">=2.22.0" },
     { name = "numpy", specifier = ">=1.24.0" },
     { name = "openpyxl", specifier = ">=3.1.0" },
     { name = "optuna", specifier = ">=3.0.0" },
