@@ -9,8 +9,9 @@ Expone endpoints para:
 
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import Response
 from pydantic import BaseModel
-from typing import Optional
+from typing import Optional, List
 import sys
 from pathlib import Path
 
@@ -21,6 +22,7 @@ from src.data import DataLoader
 from src.strategy import MACrossStrategy
 from src.backtest import BacktestEngine, TradingCosts
 from src.ml import FeatureEngineer, MLModel, MLStrategy
+from src.evaluation.pdf_report import AlphaReportGenerator
 
 app = FastAPI(
     title="Trading Backtester Pro API",
@@ -56,6 +58,9 @@ class BacktestResponse(BaseModel):
     equity_data: list
     trades_count: int
     strategy_name: str
+    trades_data: Optional[List[dict]] = None
+    drawdown_data: Optional[List[dict]] = None
+    monthly_returns: Optional[List[dict]] = None
     error: Optional[str] = None
 
 
@@ -139,6 +144,46 @@ async def run_backtest(request: BacktestRequest):
             step = len(equity_data) // 500
             equity_data = equity_data[::step]
         
+        # Calculate drawdown data
+        import pandas as pd
+        equity_series = result.equity
+        running_max = equity_series.cummax()
+        drawdown = (equity_series - running_max) / running_max * 100
+        drawdown_data = [
+            {"date": date.strftime("%Y-%m-%d"), "value": round(dd, 2)}
+            for date, dd in zip(drawdown.index, drawdown.values)
+        ]
+        if len(drawdown_data) > 500:
+            step = len(drawdown_data) // 500
+            drawdown_data = drawdown_data[::step]
+        
+        # Calculate monthly returns
+        equity_df = pd.DataFrame({"equity": result.equity})
+        equity_df.index = pd.to_datetime(equity_df.index)
+        monthly = equity_df.resample("ME").last()
+        monthly_returns = []
+        for i in range(1, len(monthly)):
+            prev_val = monthly.iloc[i-1]["equity"]
+            curr_val = monthly.iloc[i]["equity"]
+            ret = (curr_val - prev_val) / prev_val * 100
+            monthly_returns.append({
+                "month": monthly.index[i].strftime("%b %Y"),
+                "return": round(ret, 2)
+            })
+        
+        # Format trades data
+        trades_data = []
+        if not result.trades.empty:
+            trades_df = result.trades.copy()
+            for _, trade in trades_df.tail(20).iterrows():
+                trade_dict = {
+                    "entry_date": str(trade.get("entry_date", trade.name) if hasattr(trade, "get") else trade.name),
+                    "exit_date": str(trade.get("exit_date", "")),
+                    "return_pct": round(float(trade.get("return_pct", trade.get("pnl", 0) / request.initial_capital * 100)), 2),
+                    "pnl": round(float(trade.get("pnl", 0)), 2),
+                }
+                trades_data.append(trade_dict)
+        
         # Convert numpy types to native Python types
         def convert_to_native(obj):
             import numpy as np
@@ -159,7 +204,10 @@ async def run_backtest(request: BacktestRequest):
             stats=native_stats,
             equity_data=equity_data,
             trades_count=int(result.stats.get("total_trades", 0)),
-            strategy_name=strategy.name
+            strategy_name=strategy.name,
+            trades_data=trades_data,
+            drawdown_data=drawdown_data,
+            monthly_returns=monthly_returns
         )
         
     except Exception as e:
@@ -213,6 +261,76 @@ async def get_bot_status():
             "status": "offline",
             "error": str(e)
         }
+
+
+@app.post("/api/report/pdf")
+async def generate_pdf_report(request: BacktestRequest):
+    """Genera PDF del backtest."""
+    try:
+        # Load data
+        loader = DataLoader()
+        prices, metadata = loader.load(
+            ticker=request.ticker,
+            timeframe=request.timeframe,
+            use_cache=True
+        )
+        
+        if prices.empty:
+            raise HTTPException(status_code=400, detail="No data available")
+        
+        # Create strategy
+        if request.strategy_type == "ma_cross":
+            strategy = MACrossStrategy(
+                fast_period=request.fast_period,
+                slow_period=request.slow_period
+            )
+            strategy_params = {
+                "fast_period": request.fast_period,
+                "slow_period": request.slow_period,
+            }
+        elif request.strategy_type == "ml":
+            fe = FeatureEngineer()
+            features, target = fe.prepare_dataset(prices, horizon=1, dropna=True)
+            train_size = int(len(features) * 0.8)
+            model = MLModel(model_type="random_forest")
+            model.train(features.iloc[:train_size], target.iloc[:train_size])
+            strategy = MLStrategy(model=model, feature_engineer=fe)
+            strategy_params = {"model_type": "random_forest"}
+        else:
+            raise HTTPException(status_code=400, detail=f"Unknown strategy: {request.strategy_type}")
+        
+        # Generate signals and run backtest
+        signal_result = strategy.generate_signals(prices)
+        costs = TradingCosts(commission_pct=request.commission_pct, slippage_pct=0.0005)
+        engine = BacktestEngine(initial_capital=request.initial_capital, costs=costs)
+        result = engine.run(
+            prices=prices,
+            signals=signal_result.signals,
+            sl_pct=request.sl_pct,
+            tp_pct=request.tp_pct
+        )
+        
+        # Generate PDF
+        generator = AlphaReportGenerator(
+            title="Trading Backtester Pro",
+            subtitle="Quantitative Strategy Analysis"
+        )
+        pdf_bytes = generator.generate(
+            result=result,
+            metadata=metadata,
+            strategy_name=strategy.name,
+            strategy_params=strategy_params
+        )
+        
+        filename = f"backtest_report_{request.ticker}_{request.strategy_type}.pdf"
+        return Response(
+            content=pdf_bytes,
+            media_type="application/pdf",
+            headers={"Content-Disposition": f"attachment; filename={filename}"}
+        )
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 if __name__ == "__main__":

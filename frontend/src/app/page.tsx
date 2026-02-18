@@ -18,6 +18,7 @@ import {
   Loader2,
   X,
   ChevronDown,
+  Download,
 } from "lucide-react";
 import {
   AreaChart,
@@ -40,6 +41,9 @@ interface BacktestResult {
   equity_data: Array<{ date: string; value: number }>;
   trades_count: number;
   strategy_name: string;
+  trades_data?: Array<{ entry_date: string; exit_date: string; return_pct: number; pnl: number }>;
+  drawdown_data?: Array<{ date: string; value: number }>;
+  monthly_returns?: Array<{ month: string; return: number }>;
   error?: string;
 }
 
@@ -70,8 +74,8 @@ function MetricCard({ title, value, change, changeType = "neutral", icon, delay 
           </p>
           {change && (
             <div className={`flex items-center gap-1 mt-2 text-sm font-medium ${changeType === "positive" ? "text-green-400" :
-                changeType === "negative" ? "text-red-400" :
-                  "text-gray-400"
+              changeType === "negative" ? "text-red-400" :
+                "text-gray-400"
               }`}>
               {changeType === "positive" ? <ArrowUpRight className="w-4 h-4" /> :
                 changeType === "negative" ? <ArrowDownRight className="w-4 h-4" /> : null}
@@ -159,8 +163,8 @@ function StrategyModal({
                   key={tf}
                   onClick={() => setConfig({ ...config, timeframe: tf })}
                   className={`py-2 px-4 rounded-xl font-medium transition-all ${config.timeframe === tf
-                      ? "bg-blue-500 text-white"
-                      : "bg-gray-800 text-gray-400 hover:bg-gray-700"
+                    ? "bg-blue-500 text-white"
+                    : "bg-gray-800 text-gray-400 hover:bg-gray-700"
                     }`}
                 >
                   {tf}
@@ -176,8 +180,8 @@ function StrategyModal({
               <button
                 onClick={() => setConfig({ ...config, strategy_type: "ma_cross" })}
                 className={`py-3 px-4 rounded-xl font-medium transition-all ${config.strategy_type === "ma_cross"
-                    ? "bg-blue-500 text-white"
-                    : "bg-gray-800 text-gray-400 hover:bg-gray-700"
+                  ? "bg-blue-500 text-white"
+                  : "bg-gray-800 text-gray-400 hover:bg-gray-700"
                   }`}
               >
                 MA Cross
@@ -185,8 +189,8 @@ function StrategyModal({
               <button
                 onClick={() => setConfig({ ...config, strategy_type: "ml" })}
                 className={`py-3 px-4 rounded-xl font-medium transition-all ${config.strategy_type === "ml"
-                    ? "bg-purple-500 text-white"
-                    : "bg-gray-800 text-gray-400 hover:bg-gray-700"
+                  ? "bg-purple-500 text-white"
+                  : "bg-gray-800 text-gray-400 hover:bg-gray-700"
                   }`}
               >
                 Machine Learning
@@ -299,17 +303,35 @@ export default function Dashboard() {
 
   const stats = result?.stats || {};
   const equityData = result?.equity_data || [];
+  const drawdownData = result?.drawdown_data || [];
+  const monthlyReturns = result?.monthly_returns || [];
+  const tradesData = result?.trades_data || [];
 
-  // Calculate monthly returns from equity data
-  const monthlyReturns = equityData.length > 30
-    ? Array.from({ length: 12 }, (_, i) => {
-      const monthData = equityData.filter((_, idx) => Math.floor(idx / (equityData.length / 12)) === i);
-      if (monthData.length < 2) return { month: `M${i + 1}`, return: 0 };
-      const start = monthData[0]?.value || 100000;
-      const end = monthData[monthData.length - 1]?.value || start;
-      return { month: `M${i + 1}`, return: ((end - start) / start) * 100 };
-    })
-    : [];
+  const downloadPDF = async () => {
+    if (!currentConfig) return;
+
+    try {
+      const response = await fetch(`${API_URL}/api/report/pdf`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(currentConfig),
+      });
+
+      if (!response.ok) throw new Error("Error generating PDF");
+
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `report_${currentConfig.ticker}_${currentConfig.strategy_type}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error("Error downloading PDF:", error);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -349,6 +371,15 @@ export default function Dashboard() {
                     <div className="w-2 h-2 rounded-full bg-green-400 pulse-live" />
                     {result.strategy_name}
                   </div>
+                )}
+                {result?.success && (
+                  <button
+                    onClick={downloadPDF}
+                    className="px-4 py-2 rounded-xl bg-emerald-500/10 text-emerald-400 font-medium hover:bg-emerald-500/20 transition-colors flex items-center gap-2 border border-emerald-500/30"
+                  >
+                    <Download className="w-4 h-4" />
+                    Descargar PDF
+                  </button>
                 )}
                 <button
                   onClick={() => setIsModalOpen(true)}
@@ -471,7 +502,7 @@ export default function Dashboard() {
                         border: "1px solid rgba(255,255,255,0.1)",
                         borderRadius: "12px",
                       }}
-                      formatter={(value: number) => [`$${value.toLocaleString()}`, "Equity"]}
+                      formatter={(value) => [`$${(value ?? 0).toLocaleString()}`, "Equity"]}
                     />
                     <Area
                       type="monotone"
@@ -523,6 +554,140 @@ export default function Dashboard() {
               </div>
             </motion.div>
           </div>
+
+          {/* Monthly Returns & Drawdown Charts */}
+          {result?.success && (
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+              {/* Monthly Returns Chart */}
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: 0.6 }}
+                className="glass rounded-2xl p-6 card-hover"
+              >
+                <div className="flex items-center justify-between mb-6">
+                  <div>
+                    <h3 className="text-lg font-semibold text-white">Retornos Mensuales</h3>
+                    <p className="text-sm text-gray-500">Performance por mes</p>
+                  </div>
+                </div>
+                {monthlyReturns.length > 0 ? (
+                  <ResponsiveContainer width="100%" height={250}>
+                    <BarChart data={monthlyReturns}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" />
+                      <XAxis dataKey="month" stroke="#64748b" fontSize={10} />
+                      <YAxis stroke="#64748b" fontSize={10} tickFormatter={(v) => `${v}%`} />
+                      <Tooltip
+                        contentStyle={{
+                          backgroundColor: "rgba(17, 24, 39, 0.95)",
+                          border: "1px solid rgba(255,255,255,0.1)",
+                          borderRadius: "12px",
+                        }}
+                        formatter={(value) => [`${(Number(value) ?? 0).toFixed(2)}%`, "Retorno"]}
+                      />
+                      <Bar dataKey="return" radius={[4, 4, 0, 0]}>
+                        {monthlyReturns.map((entry, index) => (
+                          <Cell key={index} fill={entry.return >= 0 ? "#22c55e" : "#ef4444"} />
+                        ))}
+                      </Bar>
+                    </BarChart>
+                  </ResponsiveContainer>
+                ) : (
+                  <div className="h-[250px] flex items-center justify-center text-gray-500">
+                    <p>Sin datos de retornos mensuales</p>
+                  </div>
+                )}
+              </motion.div>
+
+              {/* Drawdown Chart */}
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: 0.7 }}
+                className="glass rounded-2xl p-6 card-hover"
+              >
+                <div className="flex items-center justify-between mb-6">
+                  <div>
+                    <h3 className="text-lg font-semibold text-white">Drawdown</h3>
+                    <p className="text-sm text-gray-500">Caídas desde máximos</p>
+                  </div>
+                </div>
+                {drawdownData.length > 0 ? (
+                  <ResponsiveContainer width="100%" height={250}>
+                    <AreaChart data={drawdownData}>
+                      <defs>
+                        <linearGradient id="colorDrawdown" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="5%" stopColor="#ef4444" stopOpacity={0.3} />
+                          <stop offset="95%" stopColor="#ef4444" stopOpacity={0} />
+                        </linearGradient>
+                      </defs>
+                      <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" />
+                      <XAxis dataKey="date" stroke="#64748b" fontSize={10} tickFormatter={(v) => v.slice(5)} />
+                      <YAxis stroke="#64748b" fontSize={10} tickFormatter={(v) => `${v}%`} />
+                      <Tooltip
+                        contentStyle={{
+                          backgroundColor: "rgba(17, 24, 39, 0.95)",
+                          border: "1px solid rgba(255,255,255,0.1)",
+                          borderRadius: "12px",
+                        }}
+                        formatter={(value) => [`${(Number(value) ?? 0).toFixed(2)}%`, "Drawdown"]}
+                      />
+                      <Area
+                        type="monotone"
+                        dataKey="value"
+                        stroke="#ef4444"
+                        strokeWidth={2}
+                        fillOpacity={1}
+                        fill="url(#colorDrawdown)"
+                      />
+                    </AreaChart>
+                  </ResponsiveContainer>
+                ) : (
+                  <div className="h-[250px] flex items-center justify-center text-gray-500">
+                    <p>Sin datos de drawdown</p>
+                  </div>
+                )}
+              </motion.div>
+            </div>
+          )}
+
+          {/* Trades Table */}
+          {result?.success && tradesData.length > 0 && (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.8 }}
+              className="glass rounded-2xl p-6 card-hover mb-8"
+            >
+              <h3 className="text-lg font-semibold text-white mb-4">Últimos Trades</h3>
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead>
+                    <tr className="border-b border-gray-700">
+                      <th className="text-left py-3 px-4 text-sm text-gray-400 font-medium">Entrada</th>
+                      <th className="text-left py-3 px-4 text-sm text-gray-400 font-medium">Salida</th>
+                      <th className="text-right py-3 px-4 text-sm text-gray-400 font-medium">Retorno %</th>
+                      <th className="text-right py-3 px-4 text-sm text-gray-400 font-medium">P&L</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {tradesData.slice(-10).reverse().map((trade, index) => (
+                      <tr key={index} className="border-b border-gray-800/50 hover:bg-gray-800/30">
+                        <td className="py-3 px-4 text-sm text-gray-300 font-mono">{trade.entry_date?.slice(0, 10)}</td>
+                        <td className="py-3 px-4 text-sm text-gray-300 font-mono">{trade.exit_date?.slice(0, 10)}</td>
+                        <td className={`py-3 px-4 text-sm font-mono text-right ${trade.return_pct >= 0 ? "text-green-400" : "text-red-400"}`}>
+                          {trade.return_pct >= 0 ? "+" : ""}{trade.return_pct.toFixed(2)}%
+                        </td>
+                        <td className={`py-3 px-4 text-sm font-mono text-right ${trade.pnl >= 0 ? "text-green-400" : "text-red-400"}`}>
+                          {trade.pnl >= 0 ? "+" : ""}${trade.pnl.toFixed(2)}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </motion.div>
+          )}
 
           {/* Footer */}
           <motion.footer

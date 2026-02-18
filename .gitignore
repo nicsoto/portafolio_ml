@@ -24,3 +24,8 @@ htmlcov/
 dist/
 build/
 *.egg-info/
+
+# Logs
+logs/
+*.log
+logs*.json

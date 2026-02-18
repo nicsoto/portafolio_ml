@@ -1,0 +1,105 @@
+# Trading Framework - Código Fuente
+
+Este documento contiene el código fuente del framework de trading algorítmico.
+
+---
+
+## 📁 Estructura del Proyecto
+
+```
+src/
+├── data/           # Carga y caché de datos
+├── config/         # Configuración y experimentos
+├── strategy/       # Estrategias de trading
+├── backtest/       # Motor de backtesting
+├── ml/             # Machine Learning
+├── evaluation/     # Métricas y reportes
+├── execution/      # Trading en vivo (Alpaca/MT5)
+└── optimization/   # Walk-Forward Optimization
+```
+
+---
+
+
+---
+
+## 📁 src/strategy/
+
+
+---
+
+## 📁 src/backtest/
+
+
+---
+
+## 📁 src/evaluation/
+
+
+---
+
+## 📁 src/optimization/
+
+
+---
+
+## 📁 Configuración
+
+
+### \`pyproject.toml\`
+
+\`\`\`toml
+[project]
+name = "portafolio-ml"
+version = "0.1.0"
+description = "Sistema de backtesting de trading con arquitectura modular"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "pandas>=2.0.0",
+    "numpy>=1.24.0",
+    "pandas-ta>=0.3.14b",
+    "vectorbt>=0.26.0",
+    "yfinance>=0.2.0",
+    "pydantic>=2.0.0",
+    "pydantic-settings>=2.0.0",
+    "streamlit>=1.30.0",
+    "pyarrow>=14.0.0",
+    "plotly>=5.18.0",
+    "openpyxl>=3.1.0",
+    "scikit-learn>=1.4.0",
+    "xgboost>=2.0.0",
+    "lightgbm>=4.0.0",
+    "optuna>=3.0.0",
+    "reportlab>=4.4.7",
+    "alpaca-trade-api>=3.2.0",
+    "python-dotenv>=1.2.1",
+    "fastapi>=0.128.0",
+    "uvicorn>=0.40.0",
+    "numerapi>=2.22.0",
+    "cloudpickle>=3.1.2",
+    "alpaca-py>=0.43.2",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0.0",
+    "pytest-cov>=4.0.0",
+    "ruff>=0.1.0",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = "test_*.py"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src"]
+\`\`\`

@@ -64,14 +64,14 @@ def download_numerai_data(data_dir: Path = Path("data/numerai")):
     train_path = data_dir / "numerai_training_data.parquet"
     if not train_path.exists():
         logger.info("📥 Descargando datos de entrenamiento (puede tardar)...")
-        napi.download_dataset("v5.0/train.parquet", str(train_path))
+        napi.download_dataset("v5.2/train.parquet", str(train_path))
     else:
         logger.info("✅ Datos de entrenamiento ya existen")
     
     # Download live data (siempre actualizar)
     live_path = data_dir / "numerai_live_data.parquet"
     logger.info("📥 Descargando datos live...")
-    napi.download_dataset("v5.0/live.parquet", str(live_path))
+    napi.download_dataset("v5.2/live.parquet", str(live_path))
     
     # Download features metadata
     features_path = data_dir / "features.json"
@@ -85,6 +85,7 @@ def train_numerai_model(
     train_path: Path,
     model_type: str = "lightgbm",
     target_col: str = "target",
+    sample_frac: float = 1.0,
 ) -> MLModel:
     """
     Entrena un modelo para Numerai usando tu framework.
@@ -93,9 +94,47 @@ def train_numerai_model(
         train_path: Path al archivo de entrenamiento
         model_type: Tipo de modelo (lightgbm, xgboost, random_forest)
         target_col: Columna target
+        sample_frac: Fracción de datos a usar (0.0-1.0)
     """
     logger.info(f"📚 Cargando datos de entrenamiento desde {train_path}...")
-    df = pd.read_parquet(train_path)
+    
+    # Usar feature sets curados de features.json (en lugar de las primeras N por orden)
+    import json
+    features_json_path = train_path.parent / "features.json"
+    if features_json_path.exists():
+        with open(features_json_path) as f:
+            feature_metadata = json.load(f)
+        # "medium" es el mejor balance calidad/RAM. "small" si hay poca RAM.
+        feature_cols = feature_metadata["feature_sets"].get("medium",
+                       feature_metadata["feature_sets"].get("small", []))
+        logger.info(f"📋 Feature set 'medium' de features.json: {len(feature_cols)} features")
+    else:
+        # Fallback: primeras 50 features (pero ya no debería pasar)
+        import pyarrow.parquet as pq
+        all_columns = pq.ParquetFile(train_path).schema_arrow.names
+        feature_cols = [c for c in all_columns if c.startswith("feature_")][:50]
+        logger.warning("⚠️  features.json no encontrado, usando primeras 50 features")
+    
+    columns_to_read = feature_cols + [target_col, "era"]
+    
+    # Verificar que las columnas existan en el parquet
+    import pyarrow.parquet as pq
+    available_cols = set(pq.ParquetFile(train_path).schema_arrow.names)
+    columns_to_read = [c for c in columns_to_read if c in available_cols]
+    feature_cols = [c for c in feature_cols if c in available_cols]
+    
+    logger.info(f"📉 Leyendo {len(feature_cols)} features curados...")
+    
+    # Leer solo columnas necesarias
+    df = pd.read_parquet(train_path, columns=columns_to_read)
+    
+    # Era sampling (temporal) en lugar de random sampling
+    if sample_frac < 1.0:
+        all_eras = sorted(df["era"].unique())
+        era_step = max(1, int(1.0 / sample_frac))
+        sampled_eras = all_eras[::era_step]
+        df = df[df["era"].isin(sampled_eras)]
+        logger.info(f"📉 Era sampling (cada {era_step} eras): {len(df):,} filas ({len(sampled_eras)} eras)")
     
     logger.info(f"📊 Dataset: {len(df):,} filas, {len(df.columns)} columnas")
     
@@ -114,32 +153,39 @@ def train_numerai_model(
     
     logger.info(f"✅ Datos válidos: {len(X):,} filas")
     
-    # Crear y entrenar modelo usando tu framework
-    logger.info(f"🚀 Entrenando modelo {model_type}...")
+    # Para Numerai usamos LGBMRegressor directamente (es regresión, no clasificación)
+    logger.info(f"🚀 Entrenando modelo LightGBM (Regressor)...")
     
-    model = MLModel(model_type=model_type)
+    from lightgbm import LGBMRegressor
+    import joblib
     
-    # Para Numerai usamos parámetros específicos
-    if model_type == "lightgbm":
-        model.model_params = {
-            "n_estimators": 2000,
-            "learning_rate": 0.01,
-            "max_depth": 5,
-            "colsample_bytree": 0.1,
-            "n_jobs": -1,
-            "verbose": -1,
-        }
+    model = LGBMRegressor(
+        n_estimators=2000,
+        learning_rate=0.005,
+        max_depth=6,
+        num_leaves=2**6 - 1,
+        colsample_bytree=0.1,
+        subsample=0.8,
+        subsample_freq=1,       # Necesario para que subsample funcione
+        reg_alpha=0.1,          # L1 regularization
+        reg_lambda=1.0,         # L2 regularization
+        min_child_samples=5000, # Evitar overfitting en hojas pequeñas
+        n_jobs=-1,
+        verbose=-1,
+    )
     
-    model.train(X, y)
+    model.fit(X, y)
     
     logger.info("✅ Modelo entrenado exitosamente")
     
-    return model
+    # Guardar con joblib directamente
+    return model, feature_cols
 
 
 def generate_predictions(
-    model: MLModel,
+    model,
     live_path: Path,
+    feature_cols: list = None,
 ) -> pd.DataFrame:
     """
     Genera predicciones para los datos live de Numerai.
@@ -149,17 +195,37 @@ def generate_predictions(
     
     logger.info(f"📊 Datos live: {len(df):,} filas")
     
-    # Identificar features
-    feature_cols = [c for c in df.columns if c.startswith("feature_")]
-    X = df[feature_cols]
+    # Usar features del modelo si se proporcionan
+    if feature_cols:
+        available_features = [c for c in feature_cols if c in df.columns]
+        X = df[available_features]
+        logger.info(f"🔢 Usando {len(available_features)} features del modelo entrenado")
+    else:
+        feature_cols = [c for c in df.columns if c.startswith("feature_")]
+        X = df[feature_cols]
     
-    # Generar predicciones
+    # Generar predicciones (predict para regresión)
     logger.info("🔮 Generando predicciones...")
-    predictions = model.predict_proba(X)
+    raw_predictions = model.predict(X)
+    
+    # Rank normalize: convierte a distribución uniforme [0, 1]
+    # Numerai prefiere predicciones con distribución uniforme
+    from scipy.stats import rankdata
+    ranked = rankdata(raw_predictions, method="average")
+    predictions = (ranked - 0.5) / len(ranked)
+    logger.info(f"📊 Predicciones normalizadas: [{predictions.min():.4f}, {predictions.max():.4f}]")
     
     # Crear DataFrame de submission
+    # Numerai v5.2 usa "id", versiones anteriores pueden usar row_id o índice
+    if "id" in df.columns:
+        id_col = df["id"]
+    elif "row_id" in df.columns:
+        id_col = df["row_id"]
+    else:
+        id_col = df.index
+    
     submission = pd.DataFrame({
-        "id": df["id"],
+        "id": id_col,
         "prediction": predictions
     })
     
@@ -215,6 +281,9 @@ def main():
     parser.add_argument("--model-path", default="models/numerai_model.pkl",
                        help="Path para guardar/cargar modelo")
     
+    parser.add_argument("--sample", type=float, default=0.3,
+                       help="Fracción de datos a usar (0.0-1.0), default 0.3 para ahorrar RAM")
+    
     args = parser.parse_args()
     
     data_dir = Path("data/numerai")
@@ -224,23 +293,29 @@ def main():
     # Descargar datos
     train_path, live_path = download_numerai_data(data_dir)
     
+    feature_cols = None
+    
     # Entrenar modelo
     if args.train:
-        model = train_numerai_model(train_path, model_type=args.model_type)
-        model.save(model_path)
+        import joblib
+        model, feature_cols = train_numerai_model(train_path, model_type=args.model_type, sample_frac=args.sample)
+        joblib.dump({"model": model, "features": feature_cols}, model_path)
         logger.info(f"💾 Modelo guardado en {model_path}")
     else:
         # Cargar modelo existente
+        import joblib
         if not model_path.exists():
             logger.error(f"❌ Modelo no encontrado: {model_path}")
             logger.info("💡 Usa --train para entrenar un modelo primero")
             return
-        model = MLModel.load(model_path)
+        saved = joblib.load(model_path)
+        model = saved["model"]
+        feature_cols = saved["features"]
         logger.info(f"📂 Modelo cargado desde {model_path}")
     
     # Generar predicciones
     if args.predict or args.upload:
-        submission = generate_predictions(model, live_path)
+        submission = generate_predictions(model, live_path, feature_cols)
         
         # Guardar submission
         submission_path = data_dir / f"submission_{datetime.now().strftime('%Y%m%d')}.csv"
